@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Intelligence | ScreenAI Pro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Enterprise Assets -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --sidebar-w: 260px;
+            --zinc-950: #09090b;
+            --zinc-900: #18181b;
+            --zinc-800: #27272a;
+            --zinc-700: #3f3f46;
+            --zinc-400: #a1a1aa;
+            --zinc-100: #f4f4f5;
+            --brand-primary: #6366f1;
+            --brand-accent: #10b981;
+            --border-subtle: rgba(255,255,255,0.08);
+            --card-bg: #18181b;
+            --bg-main: #09090b;
+            --text-main: #f4f4f5;
+        }
+
+        body {
+            background-color: var(--zinc-950);
+            color: var(--zinc-100);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .app-shell { display: flex; height: 100vh; }
+
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--zinc-950);
+            border-right: 1px solid var(--border-subtle);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .brand-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--text-main);
+            margin-bottom: 2.5rem;
+            text-decoration: none;
+        }
+
+        .nav-link-custom {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: #a1a1aa;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .nav-link-custom:hover {
+            background: var(--zinc-900);
+            color: #ffffff;
+        }
+
+        .nav-link-custom.active {
+            background: rgba(99, 102, 241, 0.12);
+            color: #ffffff;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .main-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 2.5rem;
+            background: radial-gradient(circle at top right, var(--zinc-800) 0%, var(--zinc-950) 40%);
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: 100%;
+        }
+
+        .form-control-custom {
+            background: var(--zinc-950);
+            border: 1px solid var(--zinc-800);
+            color: var(--zinc-100);
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+
+        .form-control-custom:focus {
+            background: var(--zinc-950);
+            border-color: var(--brand-primary);
+            color: #fff;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+            outline: none;
+        }
+
+        .btn-brand {
+            background: var(--brand-primary);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-brand:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-zinc {
+            background: transparent;
+            border: 1px solid var(--zinc-800);
+            color: var(--zinc-400);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-outline-zinc:hover {
+            background: var(--zinc-800);
+            color: #fff;
+        }
+
+        .alert-toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1050;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .pulse-dot {
+            height: 8px; width: 8px;
+            background-color: var(--brand-accent);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(16,185,129,0.7);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+            100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="toast" class="alert-toast"></div>
+
+<div class="app-shell">
+    <aside class="sidebar">
+        <a href="/dashboard" class="brand-area">
+            <i data-lucide="brain-circuit" class="text-primary" style="width: 32px; height: 32px;"></i>
+            <span>ScreenAI Pro</span>
+        </a>
+
+        <div class="mb-4">
+            <p class="text-zinc-400 small fw-bold text-uppercase px-2 mb-3" style="font-size: 0.7rem;">Account Management</p>
+            <a href="/dashboard" class="nav-link-custom">
+                <i data-lucide="layout-grid" size="18"></i> Dashboard
+            </a>
+            <a href="/profile" class="nav-link-custom active">
+                <i data-lucide="user" size="18"></i> My Profile
+            </a>
+            <a href="#password-section" class="nav-link-custom" onclick="document.getElementById('password-section').scrollIntoView({behavior:'smooth'})">
+                <i data-lucide="key-round" size="18"></i> Change Password
+            </a>
+        </div>
+
+        <div class="mt-auto">
+            <div class="p-3 rounded-lg bg-zinc-900 border border-subtle mb-3">
+                <p class="small text-zinc-400 mb-2 font-bold">Need Help?</p>
+                <p class="smaller text-zinc-400 mb-3" style="font-size: 0.75rem;">Locked out or need support with your recruiter account?</p>
+                <a href="/forgot-password">Forgot Password?</a>
+            </div>
+            <a href="/logout" class="nav-link-custom text-danger">
+                <i data-lucide="log-out" size="18"></i> Sign Out
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-container">
+        <nav class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h3 class="fw-bold mb-1 text-white">Profile Intelligence</h3>
+                <p class="text-zinc-400 small mb-0">System Node: <span id="nodeId" class="text-primary">Recruiter_Alpha</span></p>
+            </div>
+            <div class="d-flex align-items-center gap-2 text-zinc-400 smaller border border-subtle rounded-pill px-3 py-1 bg-zinc-900">
+                <span class="pulse-dot"></span> Session Secure
+            </div>
+        </nav>
+
+        <div class="row g-4">
+            <!-- Left Column: Identity Card -->
+            <div class="col-lg-4">
+                <div class="glass-card text-center">
+                    <div class="position-relative d-inline-block mb-4">
+                        <div id="initialsCircle" class="rounded-circle bg-primary bg-opacity-10 border border-primary border-opacity-20 d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                            --
+                        </div>
+                    </div>
+                    <h4 id="userNameHeader" class="fw-bold text-white mb-1">Loading...</h4>
+                    <p id="userEmailHeader" class="text-zinc-400 small mb-4">...</p>
+                    
+                    <div class="text-start border-top border-zinc-800 pt-4 mt-2">
+                        <div class="mb-3">
+                            <p class="smaller text-zinc-700 text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Account Role</p>
+                            <span class="badge bg-zinc-900 border border-subtle text-accent">Recruiter Professional</span>
+                        </div>
+                        <div>
+                            <p class="smaller text-zinc-700 text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Member Since</p>
+                            <p id="joinedDate" class="small text-zinc-400 mb-0">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Settings Forms -->
+            <div class="col-lg-8">
+                <div class="space-y-4">
+                    <!-- Identity Form -->
+                    <div class="glass-card mb-4">
+                        <h6 class="fw-bold text-white mb-4 d-flex align-items-center gap-2">
+                            <i data-lucide="id-card" class="text-primary" size="18"></i> Personal Identity
+                        </h6>
+                        <form id="profileForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="small text-zinc-400 mb-2">Full Name</label>
+                                    <input type="text" id="inputName" class="form-control-custom w-100" required readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small text-zinc-400 mb-2">Email Address</label>
+                                    <input type="email" id="inputEmail" class="form-control-custom w-100" required readonly>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Password Form -->
+                    <div id="password-section" class="glass-card">
+                        <h6 class="fw-bold text-white mb-4 d-flex align-items-center gap-2">
+                            <i data-lucide="shield-check" class="text-accent" size="18"></i> Security Credentials
+                        </h6>
+                        <form id="passwordForm">
+                            <div class="mb-3">
+                                <label class="small text-zinc-400 mb-2">Current Security Key</label>
+                                <input type="password" id="currentPassword" class="form-control-custom w-100" required placeholder="••••••••">
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="small text-zinc-400 mb-2">New Security Key</label>
+                                    <input type="password" id="newPassword" class="form-control-custom w-100" required minlength="8" placeholder="Min 8 characters">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small text-zinc-400 mb-2">Confirm New Key</label>
+                                    <input type="password" id="confirmPassword" class="form-control-custom w-100" required minlength="8" placeholder="Repeat key">
+                                </div>
+                            </div>
+                            <div class="col-12 text-end mt-4">
+                                <button type="submit" id="changePassBtn" class="btn-brand" style="background: var(--zinc-800); border: 1px solid var(--zinc-700);">
+                                    Rotate Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    lucide.createIcons();
+
+    const showToast = (msg, isError = false) => {
+        const toast = document.getElementById('toast');
+        toast.innerText = msg;
+        toast.style.background = isError ? '#ef4444' : '#10b981';
+        toast.style.color = '#fff';
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 4000);
+    };
+
+    // 1. Fetch Profile on Initialization
+    async function loadProfile() {
+        try {
+            const res = await fetch('/api/profile');
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+
+            // Populate Headers
+            document.getElementById('userNameHeader').innerText = data.full_name;
+            document.getElementById('userEmailHeader').innerText = data.email;
+            document.getElementById('joinedDate').innerText = data.created_at || 'Jan 2024';
+            
+            // Initials
+            const initials = data.full_name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            document.getElementById('initialsCircle').innerText = initials || '??';
+
+            // Inputs
+            document.getElementById('inputName').value = data.full_name;
+            document.getElementById('inputEmail').value = data.email;
+            
+        } catch (err) {
+            showToast('Failed to connect to Neural Engine (API Error)', true);
+        }
+    }
+
+    // 2. Update Profile Identity
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('saveProfileBtn');
+        btn.disabled = true;
+        btn.innerText = 'Syncing...';
+
+        try {
+            const res = await fetch('/api/update_profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    full_name: document.getElementById('inputName').value,
+                    email: document.getElementById('inputEmail').value
+                })
+            });
+
+            if (res.ok) {
+                showToast('Identity records updated');
+                loadProfile();
+            } else {
+                const err = await res.json();
+                showToast(err.message || 'Sync failed', true);
+            }
+        } catch (e) {
+            showToast('Network disruption', true);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Update Identity';
+        }
+    });
+
+    // 3. Password Rotation
+    document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newPass = document.getElementById('newPassword').value;
+        const confPass = document.getElementById('confirmPassword').value;
+
+        if (newPass !== confPass) {
+            showToast('Security keys do not match', true);
+            return;
+        }
+
+        const btn = document.getElementById('changePassBtn');
+        btn.disabled = true;
+        btn.innerText = 'Rotating...';
+
+        try {
+            const res = await fetch('/api/change_password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    current_password: document.getElementById('currentPassword').value,
+                    new_password: newPass
+                })
+            });
+
+            if (res.ok) {
+                showToast('Credentials rotated successfully');
+                e.target.reset();
+            } else {
+                const err = await res.json();
+                showToast(err.message || 'Verification failed', true);
+            }
+        } catch (e) {
+            showToast('Security node error', true);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Rotate Password';
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadProfile);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScreenAI Pro | Intelligence Command Center</title>
+    
+    <!-- Enterprise Assets -->
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+:root {
+    --sidebar-w: 260px;
+
+    /* DARK THEME COLORS (DEFAULT) */
+    --zinc-950: #09090b;
+    --zinc-900: #18181b;
+    --zinc-800: #27272a;
+    --zinc-700: #3f3f46;
+    --zinc-400: #a1a1aa;
+    --zinc-100: #f4f4f5;
+
+    --brand-primary: #6366f1; /* Slightly brighter for better contrast */
+    --brand-accent: #10b981;
+
+    --border-subtle: rgba(255,255,255,0.08);
+
+    --card-bg: #18181b;
+    --bg-main: #09090b;
+    --text-main: #f4f4f5;
+}
+
+/* LIGHT THEME */
+[data-theme="light"] {
+    --zinc-950: #f4f4f5;
+    --zinc-900: #ffffff;
+    --zinc-800: #e4e4e7;
+    --zinc-700: #d4d4d8;
+    --zinc-400: #52525b;
+    --zinc-100: #18181b;
+    --border-subtle: rgba(0,0,0,0.08);
+    --card-bg: #ffffff;
+}
+
+body {
+    background-color: var(--zinc-950);
+    color: var(--zinc-100);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--zinc-950); }
+::-webkit-scrollbar-thumb { background: var(--zinc-800); border-radius: 10px; }
+
+.app-shell { display: flex; height: 100vh; }
+
+.sidebar {
+    width: var(--sidebar-w);
+    background: var(--zinc-950);
+    border-right: 1px solid var(--border-subtle);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.brand-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--text-main);
+    margin-bottom: 2.5rem;
+    text-decoration: none;
+}
+
+/* =========================
+   UPDATED NAV READABILITY
+========================= */
+.nav-link-custom {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    color: #a1a1aa; /* Higher contrast gray for readability */
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.nav-link-custom i {
+    opacity: 0.7;
+    transition: color 0.2s;
+}
+
+.nav-link-custom:hover {
+    background: var(--zinc-900);
+    color: #ffffff; /* pure white on hover */
+}
+
+.nav-link-custom:hover i { opacity: 1; color: var(--brand-primary); }
+
+.nav-link-custom.active {
+    background: rgba(99, 102, 241, 0.12) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.nav-link-custom.active i {
+    color: var(--brand-primary);
+    opacity: 1;
+}
+
+.main-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 2.5rem;
+    background: radial-gradient(circle at top right, var(--zinc-800) 0%, var(--zinc-950) 40%);
+}
+
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: transform 0.2s, border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--zinc-700);
+}
+
+.kpi-value { font-size: 1.75rem; font-weight: 700; margin: 0.25rem 0; }
+.kpi-trend { font-size: 0.75rem; font-weight: 600; }
+.trend-up { color: var(--brand-accent); }
+.trend-down { color: #f87171; }
+
+.insight-panel {
+    background: linear-gradient(145deg, rgba(79,70,229,0.1), var(--bg-main));
+    border: 1px solid rgba(79,70,229,0.3);
+    box-shadow: 0 0 20px rgba(79,70,229,0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.pulse-dot {
+    height: 8px; width: 8px;
+    background-color: var(--brand-accent);
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 0 rgba(16,185,129,0.7);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+    100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+
+.glass-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 1.5rem;
+    height: 100%;
+}
+
+/* =========================
+   UPDATED PIPELINE CSS
+========================= */
+/* =========================
+   DEEP DARK PIPELINE THEME
+========================= */
+.pipeline-intelligence-container {
+    background-color: #09090b !important; /* Force Zinc-950 */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Force the table and all its cells to be dark */
+.pipeline-table {
+    background-color: #09090b !important;
+    color: #a1a1aa !important; /* Zinc-400 for secondary text */
+    border-color: #27272a !important;
+}
+
+.pipeline-table thead th {
+    background-color: #18181b !important; /* Zinc-900 for header contrast */
+    color: #6366f1 !important; /* Indigo/Brand color for headers */
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid #27272a !important;
+}
+
+.pipeline-row td {
+    background-color: #09090b !important;
+    border-bottom: 1px solid #18181b !important;
+    padding: 1.25rem 1rem;
+    color: #f4f4f5 !important; /* Zinc-100 for main data */
+}
+
+/* Highlight row on hover without using white */
+.pipeline-row:hover td {
+    background-color: #18181b !important; 
+}
+
+/* Ensure progress bar background isn't white */
+.progress {
+    background-color: #18181b !important;
+}
+
+/* Fix for any potential Bootstrap link/text overrides */
+.pipeline-row .text-white {
+    color: #f4f4f5 !important;
+}
+/* Hover effect for rows to improve readability */
+.pipeline-row:hover {
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.pipeline-row:last-child td {
+    border-bottom: none;
+}
+.pipeline-table td {
+    vertical-align: middle !important; /* Forces all columns to align to the center line */
+}
+
+.text-accent {
+    color: var(--brand-accent);
+}
+
+.smaller {
+    font-size: 0.75rem;
+}
+
+/* Adjust the button-row to ensure it doesn't add extra height */
+.button-row {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    align-items: center;
+    height: 100%; /* Ensures the flex container fills the cell height */
+}
+.btn-command-v2 {
+    background: #18181b;
+    border: 1px solid #27272a;
+    color: #f4f4f5;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-command-v2:hover {
+    background: #27272a;
+    border-color: #3f3f46;
+    color: #fff;  
+}
+.btn-command-v2:focus {
+    outline: none; /* Removes the default browser ring */
+    box-shadow: none; /* Removes any shadow that might look like a glow */
+}
+
+.btn-command-v2:active {
+    background: #27272a; /* Keeps the hover color or goes slightly darker on click */
+    transform: scale(0.98); /* Optional: gives a slight "pressed" feel */
+}
+
+.profile-btn {
+    background: var(--zinc-900);
+    border: 1px solid var(--border-subtle);
+    padding: 6px 14px;
+    border-radius: 8px;
+    color: var(--text-main);
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.profile-btn:hover {
+    background: var(--zinc-800);
+    border-color: var(--zinc-400);
+}
+
+.activity-feed-v2 { border-left: 2px solid var(--zinc-800); padding-left: 1.25rem; }
+.feed-item { position: relative; margin-bottom: 1.5rem; }
+.feed-item::before {
+    content: ''; position: absolute; left: -1.4rem; top: 4px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--brand-primary); border: 2px solid var(--zinc-950);
+}
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+    <aside class="sidebar">
+        <a href="{{ url_for('dashboard') }}" class="brand-area">
+            <i data-lucide="brain-circuit" class="text-primary" style="width: 32px; height: 32px;"></i>
+            <span>ScreenAI Pro</span>
+        </a>
+
+        <div class="mb-4">
+            <p class="text-zinc-400 small fw-bold text-uppercase px-2 mb-3" style="font-size: 0.7rem;">Main Menu</p>
+            <a href="{{ url_for('dashboard') }}" class="nav-link-custom {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i data-lucide="layout-grid" size="18"></i> Dashboard
+            </a>
+            <a href="{{ url_for('add_job') }}" class="nav-link-custom {% if request.endpoint == 'add_job' %}active{% endif %}">
+                <i data-lucide="briefcase" size="18"></i> Add Hiring
+            </a>
+            
+            <a href="{{ url_for('jobs') }}" class="nav-link-custom {% if request.endpoint == 'jobs' %}active{% endif %}">
+                <i data-lucide="layers" size="18"></i> Total Jobs
+            </a>
+        </div>
+
+        <div class="mt-auto">
+            <a href="{{ url_for('logout') }}" class="nav-link-custom text-danger">
+                <i data-lucide="log-out" size="18"></i> Sign Out
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-container">
+        <nav class="top-nav">
+            <div>
+                <h3 class="fw-bold mb-1">Recruitment Intelligence</h3>
+                <p class="text-zinc-400 small mb-0">Hello, <span class="text-white fw-semibold">{{ username }}</span></p>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2 text-zinc-400 smaller border border-subtle rounded-pill px-3 py-1 bg-zinc-900">
+                    <span class="pulse-dot"></span> System Live
+                </div>
+                <a href="{{ url_for('profile') }}" style="text-decoration: none;">
+                    <button class="profile-btn">
+                        <i data-lucide="user" size="16"></i> Profile
+                    </button>
+                </a>
+            </div>
+        </nav>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-2">
+                <div class="kpi-card">
+                    <p class="text-zinc-400 small fw-medium mb-1">Active Jobs</p>
+                    <div class="kpi-value" id="jobsValue">{{ total_jobs|default(0) }}</div>
+                    <span class="kpi-trend trend-up"><i data-lucide="arrow-up-right" size="12"></i> +12%</span>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="kpi-card">
+                    <p class="text-zinc-400 small fw-medium mb-1">Processed</p>
+                    <div class="kpi-value" id="resumeValue">{{ total_resumes|default(0) }}</div>
+                    <span class="kpi-trend trend-up"><i data-lucide="arrow-up-right" size="12"></i> +4.2%</span>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="kpi-card">
+                    <p class="text-zinc-400 small fw-medium mb-1">Avg Match</p>
+                    <div class="kpi-value" id="avgScoreValue">{{ avg_score|default(0) }}%</div>
+                    <span class="kpi-trend trend-down"><i data-lucide="arrow-down-right" size="12"></i> -2.1%</span>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="kpi-card">
+                    <p class="text-zinc-400 small fw-medium mb-1">Pass Rate</p>
+                    <div class="kpi-value" id="passRateValue">{{ high_quality_percent|default(0) }}%</div>
+                    <span class="kpi-trend trend-up"><i data-lucide="arrow-up-right" size="12"></i> +8%</span>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="kpi-card">
+                    <p class="text-zinc-400 small fw-medium mb-1">Top Score</p>
+                    <div class="kpi-value text-primary" id="topScoreValue">{{ top_candidate.score if top_candidate else 0 }}%</div>
+                    <span class="kpi-trend text-zinc-400">Peak Pool</span>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="kpi-card">
+                    <p class="text-zinc-400 small fw-medium mb-1">Engine Time</p>
+                    <div class="kpi-value">0.8s</div>
+                    <span class="kpi-trend trend-up"><i data-lucide="zap" size="12"></i> Latency</span>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="insight-panel d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-lg border border-primary border-opacity-20">
+                            <i data-lucide="bar-chart-3" class="text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Neural Matching Insight</h6>
+                            <p class="text-zinc-400 small mb-0">We noticed a 15% increase in skill density for <span class="text-white fw-bold">Next.js 14</span>. Recommendation: Adjust weightings.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="glass-card">
+                    <h6 class="fw-bold mb-4">Talent Distribution (30 Days)</h6>
+                    <div style="height: 300px;">
+                        <canvas id="mainScoreChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="glass-card">
+                    <h6 class="fw-bold mb-4">Skill Matrix Coverage</h6>
+                    <div style="height: 300px;">
+                        <canvas id="skillRadarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-9">
+                <div class="pipeline-intelligence-container">
+    <div class="p-4 d-flex justify-content-between align-items-center" style="background: #09090b;">
+        <div>
+            <h6 class="fw-bold text-white mb-1">Pipeline Intelligence</h6>
+            <p class="smaller text-zinc-400 mb-0">Real-time status of screening batches</p>
+        </div>
+        <span class="badge bg-zinc-900 border border-subtle text-success px-2 py-1" style="font-size: 10px;">
+            <span class="pulse-dot me-1"></span> SYSTEM ACTIVE
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="pipeline-table w-100 m-0">
+            <thead>
+                <tr>
+                    <th>Position</th>
+                    <th>Volume</th>
+                    <th>Match Score</th>
+                    <th>Pool Health</th>
+                    <th class="text-end">Command</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr class="pipeline-row">
+                    <td>
+                        <div class="fw-bold" style="color: #f4f4f5;">{{ job.title }}</div>
+                        <div class="smaller" style="color: #71717a;">ID: {{ job.id }}</div>
+                    </td>
+                    <td>
+                        <span style="color: #a1a1aa;">{{ job.resumes|length }} Profiles</span>
+                    </td>
+                    <td>
+                        {% set score = (job.resumes|map(attribute='score')|sum / job.resumes|length)|round(1) if job.resumes else 0 %}
+                        <span class="fw-bold"style="color: {% if score > 70 %}#10b981{% else %}#f59e0b{% endif %};">
+                            {{ score }}%
+                        </span>
+                    </td>
+                    <td style="width: 180px;">
+                        <div class="progress" style="height: 4px; border-radius: 10px;">
+                            <div class="progress-bar bg-primary"style="width: {{ score }}%;"></div>
+                        </div>
+                    </td>
+                    <td class="text-end"> <div class="button-row justify-content-end"> <a href="{{ url_for('job_results', job_id=job.id) }}" class="btn-command-v2">
+            <i data-lucide="terminal" size="14"></i> Analyze
+        </a>
+        <a href="/apply/{{ job.id }}" class="btn-command-v2">
+            <i data-lucide="share-2" size="14"></i> Link
+        </a>
+    </div>
+</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+            </div>
+        </div>
+    </main>
+</div>
+<div class="chart-container">
+
+    <div id="chartLoading" style="display:none;">
+        Loading analytics...
+    </div>
+
+    <canvas id="mainScoreChart"></canvas>
+
+</div>
+
+
+ 
+<script>
+    lucide.createIcons();
+
+    const zincColors = {
+        primary: '#6366f1',
+        accent: '#10b981',
+        muted: '#27272a',
+        text: '#71717a',
+        grid: 'rgba(255,255,255,0.03)'
+    };
+    const dataContainer = document.getElementById('chart-data');
+    const ctxScore = document.getElementById('mainScoreChart').getContext('2d');
+    
+    // Gradient for the chart
+    const gradient = ctxScore.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)');
+    gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+
+    let scoreLabels = [];
+let scoreValues = [];
+
+fetch('/api/resume-stats')
+    .then(res => res.json())
+    .then(data => {
+        const sortedDates = Object.keys(data).sort();
+        const counts = sortedDates.map(date => data[date]);
+
+        // Check if we have data to show
+        if (sortedDates.length === 0) {
+            console.log("No resume data found yet.");
+            return;
+        }
+
+        new Chart(ctxScore, {
+            type: 'line',
+            data: {
+                labels: sortedDates,
+                datasets: [{
+                    label: 'Resumes Processed',
+                    data: counts,
+                    borderColor: '#6366f1',
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#6366f1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.03)' }, 
+                        ticks: { color: '#71717a', stepSize: 1 } 
+                    },
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { color: '#71717a' } 
+                    }
+                }
+            }
+        });
+    })
+    .catch(error => console.error('Error fetching stats:', error));
+
+    const ctxRadar = document.getElementById('skillRadarChart').getContext('2d');
+    new Chart(ctxRadar, {
+        type: 'radar',
+        data: {
+            labels: ['Frontend', 'Backend', 'DevOps', 'Architecture', 'AI/ML', 'Soft Skills'],
+            datasets: [{
+                label: 'Pool Strengths',
+                data: [85, 70, 60, 75, 50, 90],
+                borderColor: zincColors.accent,
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                r: {
+                    angleLines: { color: zincColors.grid },
+                    grid: { color: zincColors.grid },
+                    pointLabels: { color: zincColors.text, font: { size: 10 } },
+                    ticks: { display: false }
+                }
+            }
+        }
+    });
+
+
+const chartLoader = document.getElementById("chartLoading");
+chartLoader.style.display = "block";
+
+fetch('/api/resume-stats')
+.then(res => res.json())
+.then(data => {
+
+    console.log(data);
+
+    let scoreLabels = Object.keys(data);
+    let scoreValues = Object.values(data);
+
+    const ctxScore = document.getElementById('mainScoreChart').getContext('2d');
+
+    new Chart(ctxScore, {
+        type: 'line',
+        data: {
+            labels: scoreLabels,
+            datasets: [{
+                data: scoreValues,
+                borderWidth: 2,
+                fill: true
+            }]
+        }
+    });
+
+})
+.catch(err => {
+    console.error(err);
+})
+.finally(() => {
+    chartLoader.style.display = "none";
+});
+
+</script>
+<script>
+
+function animateNumber(elementId, endValue, suffix="") {
+
+    const element = document.getElementById(elementId);
+    const duration = 800;
+
+    let start = 0;
+    let current = start;
+    let increment = endValue > start ? 1 : -1;
+
+    const stepTime = Math.abs(Math.floor(duration / (endValue || 1)));
+
+    const timer = setInterval(function () {
+
+        current += increment;
+        element.innerText = current + suffix;
+
+        if (current == endValue) {
+            clearInterval(timer);
+        }
+
+    }, stepTime);
+
+}
+
+window.addEventListener("load", function(){
+
+    animateNumber("jobsValue", totalJobs);
+    animateNumber("resumeValue", totalResumes);
+    animateNumber("avgScoreValue", avgScore, "%");
+    animateNumber("passRateValue", passRate, "%");
+    animateNumber("topScoreValue", topScore, "%");
+});
+</script>
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results | {{ job.title }}</title>
+    <!-- Bootstrap 5 & Google Fonts -->
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+:root {
+    --zinc-950: #09090b;
+    --zinc-900: #18181b;
+    --zinc-800: #27272a;
+    --zinc-700: #3f3f46;
+    --zinc-400: #a1a1aa;
+    --zinc-100: #f4f4f5;
+    --brand-primary: #6366f1; /* Intelligence Indigo */
+    --brand-accent: #10b981;
+    --border-subtle: rgba(255,255,255,0.08);
+    --card-bg: #18181b;
+}
+
+/* Core Layout */
+body {
+    background-color: var(--zinc-950);
+    background: radial-gradient(circle at top right, var(--zinc-800) 0%, var(--zinc-950) 40%);
+    color: var(--zinc-100);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+}
+/* STATUS DROPDOWN */
+
+.status-dropdown{
+background:#0f172a;
+color:#e5e7eb;
+border:1px solid #27272a;
+padding:6px 10px;
+border-radius:6px;
+font-size:13px;
+cursor:pointer;
+transition:0.2s;
+}
+
+.status-dropdown:hover{
+border-color:#6366f1;
+}
+
+/* STATUS COLORS */
+
+.status-pending{
+color:#facc15;
+font-weight:600;
+}
+
+.status-interview{
+color:#38bdf8;
+font-weight:600;
+}
+
+.status-approved{
+color:#4ade80;
+font-weight:600;
+}
+
+.status-rejected{
+color:#f87171;
+font-weight:600;
+}
+
+.main-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+    background: rgba(24, 24, 27, 0.8);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.glass-card .border-bottom {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    padding: 1.5rem !important;
+}
+
+/* Leaderboard & Rank Styles */
+.rank-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.rank-card:hover { transform: translateY(-5px); }
+
+.rank-badge {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--zinc-800);
+    border: 1px solid var(--zinc-700);
+    color: var(--zinc-400);
+    font-weight: 700;
+}
+
+.rank-1 {
+    background: linear-gradient(135deg, #fbbf24, #b45309) !important;
+    color: #000 !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+}
+
+.rank-icon-1 { color: #fbbf24; }
+.rank-icon-2 { color: #94a3b8; }
+.rank-icon-3 { color: #b45309; }
+
+/* Table Design */
+.table-custom {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    color: var(--zinc-100);
+}
+
+.table-custom thead th {
+    background: rgba(9, 9, 11, 0.5);
+    color: var(--zinc-400);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--zinc-800);
+}
+
+.table-custom td {
+    padding: 1.25rem 1.5rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.table-custom tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Score Component */
+.score-ring {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.75rem;
+    position: relative;
+    background: conic-gradient(var(--score-color) var(--percentage), rgba(255,255,255,0.1) 0);
+}
+
+.score-ring::after {
+    content: attr(data-score) "%";
+    position: absolute;
+    width: 38px;
+    height: 38px;
+    background: var(--zinc-900);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+.status-dropdown{
+margin-top:6px;
+background:#ffffff;
+color:#000000;
+border:1px solid #ffffff;
+padding:4px 8px;
+border-radius:6px;
+font-size:12px;
+}
+.status-dropdown :hover{
+    background: #38bdf8;
+
+}
+/* UI Elements */
+.status-pill {
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Color logic for Status Pills */
+.status-pill[style*="#dcfce7"] { background: rgba(16, 185, 129, 0.1) !important; color: #34d399 !important; border: 1px solid rgba(16, 185, 129, 0.2) !important; }
+.status-pill[style*="#fef9c3"] { background: rgba(245, 158, 11, 0.1) !important; color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.2) !important; }
+.status-pill[style*="#fee2e2"] { background: rgba(239, 68, 68, 0.1) !important; color: #f87171 !important; border: 1px solid rgba(239, 68, 68, 0.2) !important; }
+
+/* Buttons & Actions */
+.btn-action-group {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.btn-base {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+}
+
+.btn-primary-custom {
+    background: var(--brand-primary) !important;
+    color: white !important;
+}
+
+.btn-primary-custom:hover {
+    background: #4f46e5 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.btn-outline-custom {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--zinc-700) !important;
+    color: black !important;
+}
+
+.btn-outline-custom:hover {
+    background: var(--zinc-800) !important;
+    border-color: var(--zinc-400) !important;
+}
+
+.btn-danger-custom {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+}
+
+.btn-danger-custom:hover {
+    background: #ef4444 !important;
+    color: white !important;
+}
+
+/* Icon Core Styles */
+[data-lucide], i[data-lucide], svg.lucide {
+    stroke: currentColor;
+    stroke-width: 2px;
+    fill: none;
+    vertical-align: middle;
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background: transparent !important; /* Forces removal of the black box */
+}
+
+/* Floating Profile Bar */
+/* ===== FLOATING DASHBOARD SHORTCUT ===== */
+.profile-bar {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 2000; /* Ensures it stays above sidebars and modals */
+    display: flex;
+    align-items: center;
+}
+
+.btn-profile {
+    background: var(--brand-primary); /* Uses your existing #6366f1 */
+    color: white !important;
+    padding: 12px 24px;
+    border-radius: 50px; /* Pill shape from your screenshot */
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-profile:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.6);
+    filter: brightness(1.1);
+}
+
+.btn-profile i {
+    flex-shrink: 0;
+}
+
+/* Mobile Adjustment for Shortcut */
+@media (max-width: 480px) {
+    .profile-bar {
+        bottom: 16px;
+        right: 16px;
+    }
+    .btn-profile span {
+        display: none; /* Icon only on very small screens to save space */
+    }
+    .btn-profile {
+        padding: 14px;
+        border-radius: 16px;
+    }
+}
+/* Badge Count Styling */
+.badge-count {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--border-subtle) !important;
+    color: var(--zinc-400) !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.badge-count span {
+    color: var(--brand-primary);
+    font-weight: 700;
+}
+
+/* Utility Classes */
+.text-important { color: black !important; } /* Fixed: Black text was invisible on dark bg */
+.text-main { color: var(--zinc-100) !important; }
+.small { color: var(--zinc-400) !important; font-size: 0.8rem; }
+
+
+/* ===== FLOATING BACK BUTTON ===== */
+.back-btn{
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    z-index: 3000;
+
+    background: rgba(24,24,27,0.8);
+    border: 1px solid var(--border-subtle);
+    color: var(--zinc-100);
+
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+    cursor: pointer;
+
+    backdrop-filter: blur(10px);
+    transition: all 0.25s ease;
+}
+
+.back-btn:hover{
+    transform: translateY(-2px);
+    background: var(--zinc-800);
+}
+
+</style>
+</head>
+<body>
+
+<div class="main-container">
+    <!-- Top Nav -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item" aria-current="page">Ranking Results</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold mb-0">{{ job.title }} <span class="fw-normal">/ Analysis</span></h2>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/apply/{{ job.id }}" class="btn-primary-custom btn-base px-4">
+                <i data-lucide="share-2" size="18"></i> Share Apply Link
+            </a>
+        </div>
+    </div>
+
+    <!-- Top 3 Leaderboard -->
+    {% if resumes|length >= 3 %}
+    <div class="row g-4 mb-5">
+        {% for i in range(3) %}
+        {% set top_res = resumes[i] %}
+        <div class="col-md-4">
+            <div class="rank-card">
+                <div class="mb-3">
+                    <i data-lucide="trophy" class="rank-icon-{{ i+1 }}" size="32"></i>
+                </div>
+                <div class=" small text-uppercase fw-bold mb-1">Rank #{{ i+1 }}</div>
+                <h5 class="fw-bold text-truncate px-3 mb-2">{{ top_res.filename }}</h5>
+                <div class="badge bg-primary rounded-pill px-3">{{ top_res.score }}% Match</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="glass-card">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+    <h5 class="fw-bold mb-0 text-main">Detailed Candidate Ranking</h5>
+    <span class="badge-count">
+        <i data-lucide="users" size="14"></i> 
+        <span>{{ resumes|length }}</span> Applicants
+    </span>
+</div>
+
+        {% if resumes %}
+        <div class="table-responsive">
+            <table class="table table-custom">
+                <thead>
+                    <tr>
+                        <th width="80">Rank</th>
+                        <th>Candidate Profile</th>
+                        <th>Match Score</th>
+                        <th>Classification</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for resume in resumes %}
+                    {% set score = resume.score|int %}
+                    {% set score_color = '#ef4444' if score < 50 else ('#f59e0b' if score < 80 else '#10b981') %}
+                    <tr>
+                        <td>
+                            <div class="rank-badge {% if loop.index == 1 %}rank-1{% endif %}">
+                                {{ loop.index }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3">
+                                    <i data-lucide="user-round" size="20"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-important">{{ resume.filename }}</div>
+                                    <!-- FIXED: Using string filter to prevent subscriptable error on integer IDs -->
+                                    <div class=" small">ID: #{{ (resume.id | string)[:8] }}...</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="score-ring" data-score="{{ score }}" style="--score-color: {{ score_color }}; --percentage: {{ score }}%;"></div>
+                                <div class="flex-grow-1" style="max-width: 100px;">
+                                    <div class="progress" style="height: 6px; background: var(--bg-color);">
+                                        <div class="progress-bar" style="--progress-width: {{ score }}%; --progress-color: {{ score_color }}; width: var(--progress-width); background-color: var(--progress-color);"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if score >= 80 %}
+                                <span class="status-pill" style="background: #dcfce7; color: #166534;">
+                                    <i data-lucide="sparkles" size="14"></i> Strong Fit
+                                </span>
+                            {% elif score >= 50 %}
+                                <span class="status-pill" style="background: #fef9c3; color: #854d0e;">
+                                    <i data-lucide="trending-up" size="14"></i> Potential
+                                </span>
+{% else %}
+                                <span class="status-pill" style="background: #fee2e2; color: #991b1b;">
+                                    <i data-lucide="alert-triangle" size="14"></i> Low Match
+                                </span>
+                            {% endif %}
+                            <form action="/update_status/{{ resume.id }}" method="POST">
+<select name="status" class="status-dropdown" onchange="this.form.submit()">
+
+<option value="Pending" {% if resume.status == "Pending" %}selected{% endif %}>🟡 Pending</option>
+
+<option value="Interview" {% if resume.status == "Interview" %}selected{% endif %}>🔵 Interview</option>
+
+<option value="Approved" {% if resume.status == "Approved" %}selected{% endif %}>🟢 Approved</option>
+
+<option value="Rejected" {% if resume.status == "Rejected" %}selected{% endif %}>🔴 Rejected</option>
+
+</select>
+</form>
+
+                        </td>
+                        <td>
+                            <div class="btn-action-group">
+                                <a href="{{ url_for('view_resume', resume_id=resume.id) }}" class="btn-base btn-primary-custom" title="Analysis">
+                                    <i data-lucide="bar-chart-big" size="16"></i> Analysis
+                                </a>
+                                <!-- Download Button with corrected visibility -->
+                                <a href="/download/{{ resume.id }}" class="btn-base btn-outline-custom" title="Download">
+                                    <i data-lucide="download" size="16" style="color: var(--text-main);"></i>
+                                </a>
+                                <a href="/delete_resume/{{ resume.id }}" class="btn-base btn-danger-custom" onclick="return confirm('Remove this candidate?')" title="Delete">
+                                    <i data-lucide="trash-2" size="16"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-5 text-center">
+            <div class="bg-light rounded-circle d-inline-flex p-4 mb-4">
+                <i data-lucide="users-2" size="48" class=""></i>
+            </div>
+            <h4 class="fw-bold">Waiting for applicants</h4>
+            <p class="">You haven't received any resumes for this position yet.</p>
+            <p class="small  mb-0">Share the apply link with potential candidates to start receiving analysis.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<button class="back-btn" onclick="goBack()">
+    ←
+</button>
+<div class="profile-bar">
+
+    <a href="/dashboard" class="btn-profile">
+
+        <i data-lucide="user" size="20"></i>
+
+        <span>Go to Dashboard</span>
+
+    </a>
+
+</div>
+
+
+<script>
+  lucide.createIcons();
+  function goBack() {
+    window.history.back();
+}
+</script>
+
+
+</body>
+</html>

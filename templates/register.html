@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Professional Assets -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+:root {
+    --bg-main: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --input-bg: #ffffff;
+    --brand-primary: #6366f1; 
+    --brand-accent: #10b981;
+}
+
+body {
+    background-color: var(--bg-main);
+    background: radial-gradient(circle at top right, #eff6ff 0%, #f8fafc 40%);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+}
+
+/* Auth Layout */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 500px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+.brand-logo {
+    width: 48px;
+    height: 48px;
+    background: var(--brand-primary);
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+/* Floating Labels & Inputs Light Mode */
+.form-floating > .form-control,
+.form-floating > .form-select {
+    background-color: var(--input-bg);
+    color: var(--text-main);
+    border: 1.5px solid var(--border-color);
+    padding-left: 3.5rem;
+    border-radius: 12px;
+}
+
+.form-floating > label {
+    padding-left: 3.5rem;
+    color: var(--text-muted);
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label,
+.form-floating > .form-select ~ label {
+    color: var(--brand-primary);
+    transform: scale(.85) translateY(-0.5rem) translateX(0.15rem);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+/* Icon Alignment */
+.position-relative {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: color 0.2s ease;
+}
+
+.mb-3:focus-within .input-icon, .mb-4:focus-within .input-icon {
+    color: var(--brand-primary);
+}
+
+/* Components */
+.btn-primary-custom {
+    background: var(--brand-primary);
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    width: 100%;
+    color: white;
+    transition: all 0.2s;
+}
+
+.btn-primary-custom:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+}
+
+.strength-meter {
+    height: 6px;
+    background: #f1f5f9;
+    margin-top: 8px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.strength-meter-fill {
+    height: 100%;
+    width: 0;
+    transition: all 0.3s ease;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-muted);
+    z-index: 10;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 24px;
+    color: var(--text-muted);
+}
+
+.auth-footer a {
+    color: var(--brand-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.validation-msg {
+    font-size: 11px;
+    margin-top: 4px;
+}
+</style>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header text-center">
+            <div class="brand-logo mx-auto">
+                <i data-lucide="cpu" style="width: 28px; height: 28px;"></i>
+            </div>
+            <h3 class="fw-bold mb-1">Create Account</h3>
+            <p class="text-muted small">Join our AI-powered screening platform.</p>
+        </div>
+
+        <form id="registrationForm" method="POST" action="{{ url_for('register') }}" class="needs-validation" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+
+            <!-- Full Name -->
+            <div class="mb-3 position-relative">
+                <i data-lucide="user" class="input-icon" style="width:18px"></i>
+                <div class="form-floating">
+                    <input type="text" name="full_name" class="form-control" id="fullName" placeholder="Full Name" required>
+                    <label for="fullName">Full Name</label>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-3 position-relative">
+                <i data-lucide="mail" class="input-icon" style="width:18px"></i>
+                <div class="form-floating">
+                    <input type="email" name="username" class="form-control" id="username" placeholder="Work Email" required>
+                    <label for="username">Work Email</label>
+                </div>
+            </div>
+
+            <!-- Company & Role -->
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <div class="position-relative">
+                        <i data-lucide="building" class="input-icon" style="width:18px"></i>
+                        <div class="form-floating">
+                            <input type="text" name="company" class="form-control" id="companyName" placeholder="Company" required>
+                            <label for="companyName">Company</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="position-relative">
+                        <i data-lucide="briefcase" class="input-icon" style="width:18px"></i>
+                        <div class="form-floating">
+                            
+                            <select name="designation" class="form-select" id="designation" required>
+                                <option value="" selected disabled>Role</option>
+                                <option value="Recruiter">Recruiter</option>
+                                <option value="Hiring Manager">Hiring Manager</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3 position-relative">
+                <i data-lucide="lock" class="input-icon" style="width:18px"></i>
+                <div class="form-floating">
+                    <input type="password" name="password" class="form-control" id="password" placeholder="Password" required>
+                    <label for="password">Password</label>
+                    <span class="password-toggle" id="togglePassword">
+                        <i data-lucide="eye" style="width:18px"></i>
+                    </span>
+                </div>
+                <div class="strength-meter">
+                    <div id="strengthBar" class="strength-meter-fill"></div>
+                </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="mb-4 position-relative">
+                <i data-lucide="check-circle" class="input-icon" style="width:18px"></i>
+                <div class="form-floating">
+                    <input type="password" name="confirm_password" class="form-control" id="confirmPassword" placeholder="Confirm" required>
+                    <label for="confirmPassword">Confirm Password</label>
+                </div>
+                <div id="matchFeedback" class="validation-msg"></div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn btn-primary-custom">
+                <span id="btnText">Sign Up</span>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p class="small mb-0">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    lucide.createIcons();
+    
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const strengthBar = document.getElementById('strengthBar');
+    const togglePassword = document.getElementById('togglePassword');
+    const matchFeedback = document.getElementById('matchFeedback');
+
+    togglePassword.addEventListener('click', function() {
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        this.innerHTML = `<i data-lucide="${type === 'password' ? 'eye' : 'eye-off'}" style="width:18px"></i>`;
+        lucide.createIcons();
+    });
+
+    password.addEventListener('input', function() {
+        let strength = Math.min(this.value.length * 10, 100);
+        strengthBar.style.width = strength + '%';
+        strengthBar.style.backgroundColor = strength < 40 ? '#ef4444' : (strength < 80 ? '#f59e0b' : '#10b981');
+    });
+
+    function checkMatch() {
+        if (!confirmPassword.value) return;
+        const matches = password.value === confirmPassword.value;
+        matchFeedback.textContent = matches ? 'Passwords match' : 'Passwords do not match';
+        matchFeedback.style.color = matches ? '#10b981' : '#ef4444';
+    }
+
+    confirmPassword.addEventListener('input', checkMatch);
+});
+</script>
+{% endblock %}

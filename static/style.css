@@ -1,0 +1,39 @@
+body{
+animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn{
+from{
+opacity:0;
+transform:translateY(10px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+.glass-card{
+transition: all 0.25s ease;
+}
+
+.glass-card:hover{
+transform: translateY(-4px);
+border-color:#3b82f6;
+}
+
+.btn-command-v2:hover{
+background:#27272a;
+border-color:#3b82f6;
+transform:translateY(-1px);
+}
+
+.btn-command-v2:hover{
+background:#27272a;
+border-color:#3b82f6;
+transform:translateY(-1px);
+}
+.empty-state{
+text-align:center;
+color:#71717a;
+padding:40px;
+}

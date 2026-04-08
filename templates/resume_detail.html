@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligence Analysis | {{ resume.filename }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Enterprise Assets -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+:root {
+    --zinc-950: #09090b;
+    --zinc-900: #18181b;
+    --zinc-800: #27272a;
+    --zinc-700: #3f3f46;
+    --zinc-400: #a1a1aa;
+    --zinc-100: #f4f4f5;
+    --brand-primary: #6366f1; /* Intelligence Indigo */
+    --brand-accent: #10b981;
+    --border-subtle: rgba(255,255,255,0.08);
+    --card-bg: #18181b;
+}
+
+body {
+    background-color: var(--zinc-950);
+    background: radial-gradient(circle at top right, var(--zinc-800) 0%, var(--zinc-950) 40%);
+    color: var(--zinc-100);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+}
+
+        .container-fluid {
+            max-width: 1000px;
+        }
+
+        /* --- Header Section --- */
+        .page-header {
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--zinc-400);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .back-link:hover { color: var(--zinc-100); }
+
+        /* ===== FLOATING DASHBOARD SHORTCUT ===== */
+.profile-bar {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 2000; /* Ensures it stays above sidebars and modals */
+    display: flex;
+    align-items: center;
+}
+
+.btn-profile {
+    background: var(--brand-primary); /* Uses your existing #6366f1 */
+    color: white !important;
+    padding: 12px 24px;
+    border-radius: 50px; /* Pill shape from your screenshot */
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-profile:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.6);
+    filter: brightness(1.1);
+}
+
+.btn-profile i {
+    flex-shrink: 0;
+}
+
+.candidate-info-card{
+    background: var(--zinc-900);
+    border: 1px solid var(--zinc-800);
+    border-radius: 16px;
+    padding: 20px;
+    display:flex;
+    gap:40px;
+    margin-bottom:30px;
+}
+
+.info-item{
+    display:flex;
+    flex-direction:column;
+}
+
+.info-label{
+    font-size:0.75rem;
+    text-transform:uppercase;
+    color:var(--zinc-400);
+    margin-bottom:4px;
+}
+
+.info-value{
+    font-size:1rem;
+    font-weight:600;
+    color:var(--zinc-100);
+}
+
+/* Mobile Adjustment for Shortcut */
+@media (max-width: 480px) {
+    .profile-bar {
+        bottom: 16px;
+        right: 16px;
+    }
+    .btn-profile span {
+        display: none; /* Icon only on very small screens to save space */
+    }
+    .btn-profile {
+        padding: 14px;
+        border-radius: 16px;
+    }
+}
+        /* --- Main Analysis Card --- */
+        .analysis-card {
+            background: var(--zinc-900);
+            border: 1px solid var(--zinc-800);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+        }
+
+        .card-hero {
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, transparent 100%);
+            border-bottom: 1px solid var(--zinc-800);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .filename-display {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .file-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--zinc-800);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--brand-primary);
+        }
+
+        .score-pill {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 12px 24px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .score-value {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--brand-accent);
+            margin-bottom: 4px;
+        }
+
+        .score-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--zinc-400);
+            font-weight: 700;
+        }
+
+        /* --- Content Layout --- */
+        .analysis-body {
+            padding: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--zinc-100);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Improved Content Display */
+        .content-display-wrapper {
+            position: relative;
+            background: #0c0c0e; /* Deep black for better contrast */
+            border: 1px solid var(--zinc-800);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .content-display {
+            padding: 32px;
+            color: var(--zinc-200); /* Highly visible light grey/white */
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border-left: 4px solid var(--brand-primary);
+        }
+
+        /* Custom Scrollbar */
+        .content-display::-webkit-scrollbar { width: 8px; }
+        .content-display::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+        .content-display::-webkit-scrollbar-thumb { background: var(--zinc-800); border-radius: 10px; }
+        .content-display::-webkit-scrollbar-thumb:hover { background: var(--zinc-700); }
+
+        /* --- Action Footer --- */
+        .action-footer {
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 1px solid var(--zinc-800);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-base {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary-custom {
+            background: var(--brand-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+            color: white;
+        }
+
+        .btn-secondary-custom {
+            background: var(--zinc-800);
+            color: var(--zinc-100);
+            border: 1px solid var(--zinc-700);
+        }
+
+        .btn-secondary-custom:hover {
+            background: var(--zinc-700);
+            color: white;
+        }
+
+        .intelligence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: var(--zinc-800);
+            border-radius: 100px;
+            font-size: 0.75rem;
+            color: var(--zinc-400);
+            margin-top: 8px;
+        }
+
+        .copy-hint {
+            font-size: 0.7rem;
+            color: var(--zinc-700);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-fluid">
+        <header class="page-header">
+            <div>
+                <a href="{{ url_for('job_results', job_id=resume.job_id) }}" class="back-link">
+                    <i data-lucide="arrow-left" size="16"></i> Back to Intelligence Board
+                </a>
+                <h1 class="h3 fw-bold mb-0">Analysis Intelligence</h1>
+            </div>
+            
+            <a href="/download/{{ resume.id }}" class="btn-base btn-secondary-custom">
+                <i data-lucide="download" size="18"></i> Source Document
+            </a>
+        </header>
+
+        <article class="analysis-card">
+            <div class="card-hero">
+                <div class="filename-display">
+                    <div class="file-icon">
+                        <i data-lucide="file-search" size="28"></i>
+                    </div>
+                    <div>
+                        <h2 class="h4 fw-bold mb-1">{{ resume.filename }}</h2>
+                        <div class="intelligence-badge">
+                            <i data-lucide="cpu" size="14" class="text-primary"></i>
+                            Neural Text Extraction Active
+                        </div>
+                    </div>
+                </div>
+
+                <div class="score-pill">
+                    <span class="score-value">{{ resume.score }}%</span>
+                    <span class="score-label">Neural Match Index</span>
+                </div>
+            </div>
+
+            <!-- Candidate Contact Info -->
+<div class="candidate-info-card">
+
+    <div class="info-item">
+        <span class="info-label">Candidate Name</span>
+        <span class="info-value">{{ candidate_name }}</span>
+    </div>
+
+    <div class="info-item">
+        <span class="info-label">Candidate Email</span>
+        <span class="info-value">{{ candidate_email }}</span>
+    </div>
+
+</div>
+
+            <div class="analysis-body">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i data-lucide="binary" class="text-primary" size="18"></i>
+                        Extracted Content Data
+                    </div>
+                    <div class="copy-hint">Read-Only Secure View</div>
+                </div>
+                
+                <div class="content-display-wrapper">
+                    <div class="content-display">
+                        {{ resume.content }}
+                    </div>
+                </div>
+
+                <div class="action-footer">
+                    <div class="small text-active d-flex align-items-center gap-2">
+                        <i data-lucide="shield-check" size="16" class="text-success"></i>
+                        Verified by ScreenAI Neural Engine v4.0.2
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('job_results', job_id=resume.job_id) }}" class="btn-base btn-primary-custom">
+                            <i data-lucide="check-circle" size="18"></i> Mark as Reviewed
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+    <div class="profile-bar">
+
+    <a href="/dashboard" class="btn-profile">
+
+        <i data-lucide="user" size="20"></i>
+
+        <span>Go to Dashboard</span>
+
+    </a>
+
+</div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block content %}
+<head>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('screenai-theme') || 'dark';
+            const root = document.documentElement;
+            if (savedTheme === 'system') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            } else {
+                root.setAttribute('data-theme', savedTheme);
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+:root {
+    --zinc-950: #09090b;
+    --zinc-900: #18181b;
+    --zinc-800: #27272a;
+    --zinc-700: #3f3f46;
+    --zinc-400: #a1a1aa;
+    --zinc-100: #f4f4f5;
+    --brand-primary: #6366f1; /* Intelligence Indigo */
+    --brand-accent: #10b981;
+    --border-subtle: rgba(255,255,255,0.08);
+    --card-bg: #18181b;
+}
+
+body {
+    background-color: var(--zinc-950);
+    background: radial-gradient(circle at top right, var(--zinc-800) 0%, var(--zinc-950) 40%);
+    color: var(--zinc-100);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+}
+        .form-container { 
+    max-width: 800px; 
+    margin: 4rem auto; 
+    padding: 0 1.5rem;
+}
+
+.glass-card {
+    background: rgba(24, 24, 27, 0.6); /* Semi-transparent zinc-900 */
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 3rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.form-label { 
+    display: block;
+    font-weight: 500; 
+    font-size: 0.875rem; 
+    color: var(--zinc-400); 
+    margin-bottom: 0.5rem; 
+    transition: color 0.2s ease;
+}
+
+.form-control {
+    width: 100%;
+    background: var(--zinc-900);
+    border: 1px solid var(--zinc-800);
+    color: var(--zinc-100);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+/* Interaction States */
+.form-control:hover {
+    border-color: var(--zinc-700);
+}
+
+.form-control:focus {
+    background: var(--zinc-950);
+    border-color: var(--brand-primary);
+    color: white;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); /* Indigo glow */
+}
+
+/* Label highlight when focusing input */
+.form-container:focus-within .form-label {
+    color: var(--brand-primary);
+}
+        /* ===== FLOATING DASHBOARD SHORTCUT ===== */
+.profile-bar {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 2000; /* Ensures it stays above sidebars and modals */
+    display: flex;
+    align-items: center;
+}
+
+.btn-profile {
+    background: var(--brand-primary); /* Uses your existing #6366f1 */
+    color: white !important;
+    padding: 12px 24px;
+    border-radius: 50px; /* Pill shape from your screenshot */
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-profile:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.6);
+    filter: brightness(1.1);
+}
+
+.btn-profile i {
+    flex-shrink: 0;
+}
+
+        .btn-publish {
+            background: var(--brand-primary);
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            width: 100%;
+            transition: 0.2s;
+        }
+        .btn-publish:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4); }
+    </style>
+</head>
+
+<div class="form-container">
+    <div class="d-flex align-items-center gap-3 mb-4">
+
+<button onclick="goDashboard()" class="btn btn-link p-0 text-secondary" title="Back to Dashboard">
+    <i data-lucide="arrow-left"></i>
+</button>
+
+<h2 class="fw-800 mb-0">Define New Mandate</h2>
+
+</div>
+
+    <div class="glass-card">
+        <form id="jobForm" action="{{ url_for('add_job') }}" method="POST">
+            <div class="mb-4">
+                <label class="form-label">Professional Role Title</label>
+                <input type="text" name="title" class="form-control" placeholder="e.g. Principal Software Engineer" required>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Job Context & Responsibilities</label>
+                <textarea name="description" id="description" class="form-control" rows="6" placeholder="Minimum 100 characters describing the role environment..." required></textarea>
+                <div class="d-flex justify-content-between mt-2">
+                    <small id="charCount" class="text-active">0 / 100 characters</small>
+                    <small id="descWarning" class="text-danger" style="display:none;">Description too brief for AI analysis.</small>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="form-label">Required Tech Stack (Comma separated)</label>
+                <input type="text" name="skills" id="skillInput" class="form-control" placeholder="Python, React, AWS, Docker..." required>
+                <small class="text-secondary mt-1 d-block">Minimum 3 core competencies required.</small>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn btn-primary btn-publish d-flex align-items-center justify-content-center gap-2">
+                <span id="spinner" class="spinner-border spinner-border-sm" style="display: none;"></span>
+                <span id="btnText">Publish To Neural Engine</span>
+            </button>
+        </form>
+    </div>
+</div>
+<div class="profile-bar">
+
+    <a href="/dashboard" class="btn-profile">
+
+        <i data-lucide="user" size="20"></i>
+
+        <span>Go to Dashboard</span>
+
+    </a>
+
+</div>
+
+<script>
+lucide.createIcons();
+
+function goDashboard(){
+    window.location.href = "/dashboard";
+}
+
+const description = document.getElementById('description');
+const charCount = document.getElementById('charCount');
+const descWarning = document.getElementById('descWarning');
+const jobForm = document.getElementById('jobForm');
+
+description.addEventListener('input', (e) => {
+    const len = e.target.value.length;
+    charCount.innerText = `${len} / 100 characters`;
+    charCount.className = len < 100 ? 'text-danger' : 'text-success';
+    descWarning.style.display = len < 100 ? 'block' : 'none';
+});
+
+jobForm.addEventListener('submit', (e) => {
+    if(description.value.length < 100) {
+        e.preventDefault();
+        return;
+    }
+
+    document.getElementById('spinner').style.display = 'inline-block';
+    document.getElementById('btnText').innerText = 'Processing...';
+    document.getElementById('submitBtn').disabled = true;
+});
+</script>
+{% endblock %}
