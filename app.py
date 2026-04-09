@@ -923,16 +923,11 @@ def logout():
 # ======================
 # RUN
 # ======================
-import webbrowser
-import threading
-
-def open_browser():
-    webbrowser.open("http://127.0.0.1:5000")
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
 
-    threading.Timer(1.5, open_browser).start()
-
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
