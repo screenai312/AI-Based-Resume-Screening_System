@@ -421,6 +421,16 @@ def change_password():
 
     return jsonify({"message": "Password updated successfully"})
 # ======================
+# Database initialization
+# ======================
+
+@app.route("/init-db")
+def init_db():
+    with app.app_context():
+        db.create_all()
+    return "Database initialized!"
+
+# ======================
 # DASHBOARD
 # ======================
 
