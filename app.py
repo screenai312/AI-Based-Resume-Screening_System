@@ -123,6 +123,8 @@ else:
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+with app.app_context():
+    db.create_all()
 
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -939,12 +941,3 @@ def logout():
 # ======================
 # RUN
 # ======================
-
-if __name__ == "__main__":
-    db = SQLAlchemy(app)
-    with app.app_context():
-        db.create_all()
-
-    import os
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
