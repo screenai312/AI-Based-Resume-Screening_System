@@ -7,10 +7,12 @@ from functools import wraps
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from pypdf import PdfReader
+from flask import abort
 from flask import session, flash
 from flask_login import login_user
 from werkzeug.utils import secure_filename
 import io
+import uuid
 import os
 from flask import send_file
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -160,6 +162,7 @@ class Job(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    public_token = db.Column(db.String(100), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     resumes = db.relationship("Resume", backref="job", lazy=True)
 
@@ -574,13 +577,19 @@ def update_status(resume_id):
 #========================
 @app.before_request
 def require_login():
-    public_routes = ["login", "register", "forgot_password", "reset_password"]
+    allowed_routes = [
+        "login",
+        "register",
+        "forgot_password",
+        "reset_password",
+        "public_apply",
+        "static"
+    ]
 
-    # allow static files (VERY IMPORTANT)
-    if request.endpoint and (
-        request.endpoint.startswith("static") or
-        request.endpoint in public_routes
-    ):
+    if request.endpoint is None:
+        return
+
+    if request.endpoint in allowed_routes:
         return
 
     if "user_id" not in session:
@@ -604,7 +613,8 @@ def add_job():
         new_job = Job(
             title=title,
             description=description,
-            user_id=session["user_id"]
+            user_id=session["user_id"],
+            public_token=str(uuid.uuid4())
              # IMPORTANT FIX
         )
 
@@ -615,6 +625,84 @@ def add_job():
 
     return render_template("add_job.html")
 
+# ======================
+# FOR OLD JOBS
+# ======================
+@app.route("/fix-job-tokens")
+def fix_job_tokens():
+    jobs = Job.query.filter((Job.public_token == None) | (Job.public_token == "")).all()
+
+    for job in jobs:
+        job.public_token = str(uuid.uuid4())
+
+    db.session.commit()
+    return "Public tokens added to existing jobs successfully."
+
+# ======================
+# PUBLIC APPLY ROUTE
+# ======================
+
+@app.route("/apply/<public_token>", methods=["GET", "POST"])
+def public_apply(public_token):
+    job = Job.query.filter_by(public_token=public_token).first()
+
+    if not job:
+        abort(404)
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        email = request.form.get("email")
+        resume_file = request.files.get("resume")
+
+        if not name or not email or not resume_file:
+            flash("Please fill all fields and upload a resume.", "danger")
+            return render_template("apply.html", job=job, public_mode=True)
+
+        if resume_file.filename == "":
+            flash("Please select a resume file.", "danger")
+            return render_template("apply.html", job=job, public_mode=True)
+
+        original_filename = secure_filename(resume_file.filename)
+
+        if not original_filename.lower().endswith(".pdf"):
+            flash("Only PDF files are allowed.", "danger")
+            return render_template("apply.html", job=job, public_mode=True)
+
+        unique_filename = str(uuid.uuid4()) + "_" + original_filename
+        filepath = os.path.join("uploads", unique_filename)
+
+        resume_file.save(filepath)
+
+        text = extract_text(filepath)
+
+        keyword_score = calculate_match_score(text, job.description)
+        skill_score = keyword_score
+        experience_score = keyword_score * 0.9
+        education_score = keyword_score * 0.8
+
+        score = calculate_final_score(
+            skill_score,
+            experience_score,
+            education_score,
+            keyword_score
+        )
+
+        new_resume = Resume(
+            filename=unique_filename,
+            content=text,
+            score=score,
+            candidate_name=name,
+            job_id=job.id,
+            user_id=job.user_id
+        )
+
+        db.session.add(new_resume)
+        db.session.commit()
+
+        flash("Application submitted successfully!", "success")
+        return redirect(url_for("public_apply", public_token=public_token))
+
+    return render_template("apply.html", job=job, public_mode=True)
 
 # ======================
 # UPLOAD RESUME
@@ -660,7 +748,7 @@ def upload_resume(job_id):
     # =========================
     # 🔥 FIX: UNIQUE FILENAME (VERY IMPORTANT)
     # =========================
-    import uuid
+    
 
     unique_filename = str(uuid.uuid4()) + "_" + original_filename
 
@@ -870,10 +958,7 @@ def apply(job_id):
     if not job:
      return "Unauthorized", 403
 
-    return render_template(
-        "apply.html",
-        job=job
-    )
+    return render_template("apply.html", job=job, public_mode=False)
 
 @app.route("/api/resume-stats")
 def resume_stats():

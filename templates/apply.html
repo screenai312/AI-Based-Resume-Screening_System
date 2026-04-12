@@ -1,421 +1,290 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apply for {{ job.title }} | Career Portal</title>
-    <!-- Bootstrap 5 & Google Fonts -->
-     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-:root {
-    --zinc-950: #09090b;
-    --zinc-900: #18181b;
-    --zinc-800: #27272a;
-    --zinc-700: #3f3f46;
-    --zinc-400: #a1a1aa;
-    --zinc-100: #f4f4f5;
-    --brand-primary: #6366f1; /* Intelligence Indigo */
-    --brand-accent: #10b981;
-    --border-subtle: rgba(255,255,255,0.08);
-    --card-bg: #18181b;
-}
+{% extends "base.html" %}
 
-/* Core Layout */
-body {
-    background-color: var(--zinc-950);
-    background: radial-gradient(circle at top right, var(--zinc-800) 0%, var(--zinc-950) 40%);
-    color: var(--zinc-100);
-    font-family: 'Inter', sans-serif;
-    min-height: 100vh;
-    margin: 0;
-}
-
-.main-container {
-    max-width: 1100px;
-    margin: 60px auto;
-    padding: 0 20px;
-}
-
-/* Glassmorphism Cards */
-.glass-card {
-    background: rgba(24, 24, 27, 0.8);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid var(--border-subtle);
-    border-radius: 16px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    overflow: hidden;
-}
-
-/* Header Section */
-.job-header {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 40px;
-    border-bottom: 1px solid var(--border-subtle);
-}
-
-/* Tech Badges */
-.badge-tech {
-    background: var(--zinc-800);
-    color: var(--zinc-100);
-    border: 1px solid var(--zinc-700);
-    padding: 6px 14px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    border-radius: 6px;
-    margin-right: 8px;
-    margin-bottom: 8px;
-    display: inline-block;
-}
-
-/* Sidebar & Form Split */
-.sidebar-info {
-    padding: 40px;
-    height: 100%;
-    border-right: 1px solid var(--border-subtle);
-    background: rgba(0, 0, 0, 0.1);
-}
-
-.form-section {
-    padding: 40px;
-}
-
-/* Inputs matching results style */
-.form-control {
-    background-color: var(--zinc-900) !important;
-    color: var(--zinc-100) !important;
-    border: 1px solid var(--zinc-700) !important;
-    padding: 12px 16px;
-    border-radius: 10px;
-    transition: all 0.2s;
-}
-
-.form-control:focus {
-    border-color: var(--brand-primary) !important;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
-    outline: none;
-}
-
-.form-label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--zinc-400);
-    margin-bottom: 8px;
-    font-weight: 700;
-}
-
-/* File Upload Area */
-.file-upload-wrapper {
-    position: relative;
-    border: 2px dashed var(--zinc-700);
-    border-radius: 12px;
-    padding: 30px;
-    text-align: center;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    background: rgba(255,255,255,0.02);
-}
-
-.file-upload-wrapper:hover {
-    border-color: var(--brand-primary);
-    background: rgba(99, 102, 241, 0.05);
-}
-
-/* Buttons synchronized with results.html */
-.btn-submit {
-    background: var(--brand-primary) !important;
-    border: none;
-    padding: 14px 28px;
-    border-radius: 12px;
-    font-weight: 600;
-    width: 100%;
-    color: white;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-submit:hover {
-    background: #4f46e5 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
-}
-
-.btn-utility {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--zinc-700);
-    color: var(--zinc-100);
-    padding: 8px 16px;
-    border-radius: 10px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-    text-decoration: none;
-}
-
-.btn-utility:hover {
-    background: var(--zinc-800);
-    border-color: var(--zinc-400);
-    color: white;
-}
-
-.text-secondary-custom {
-    line-height: 1.8;
-    font-size: 0.95rem;
-    color: var(--zinc-400) !important;
-}
-
-/* Floating Profile Bar */
-.profile-bar {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-}
-
-.btn-profile {
-    background: var(--brand-primary);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 99px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    text-decoration: none;
-    transition: transform 0.2s;
-}
-
-.btn-profile:hover {
-    transform: translateY(-3px);
-    color: white;
-}
-
-.toast-msg {
-    position: fixed;
-    bottom: 90px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--zinc-800);
-    border: 1px solid var(--border-subtle);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 99px;
-    font-size: 0.9rem;
-    display: none;
-    z-index: 1000;
-}
-
-@media (max-width: 991px) {
-    .sidebar-info {
-        border-right: none;
-        border-bottom: 1px solid var(--border-subtle);
+{% block content %}
+<style>
+    :root {
+        --zinc-950: #09090b;
+        --zinc-900: #18181b;
+        --zinc-800: #27272a;
+        --zinc-700: #3f3f46;
+        --zinc-400: #a1a1aa;
+        --brand-primary: #6366f1;
+        --border-subtle: rgba(255, 255, 255, 0.08);
     }
-}
-.toast-message{
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background: #10b981;
-    color: white;
-    padding: 12px 18px;
-    border-radius: 8px;
-    font-weight: 500;
-    display: none;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-}
-    </style>
-</head>
-<body>
-    {% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <div style="padding:10px; background:#d4edda; color:#155724; border-radius:5px;">
-      {{ messages[0] }}
-    </div>
-  {% endif %}
-{% endwith %}
 
+    body {
+        background-color: var(--zinc-950);
+        color: #f4f4f5;
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
+    }
 
+    /* Central Wrapper Logic */
+    .apply-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center; /* Vertical Center */
+        justify-content: center; /* Horizontal Center */
+        padding: 20px;
+        background-color: var(--zinc-950);
+    }
 
-<div class="main-container">
-    <div class="glass-card">
-        <!-- Header -->
-        <div class="job-header d-flex justify-content-between align-items-start flex-wrap gap-3">
-            <div>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase;">
-                        <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-active">Global Careers</a></li>
-                        <li class="breadcrumb-item active" aria-current="page" style="color: var(--brand-primary);">Professional Application</li>
-                    </ol>
-                </nav>
-                <h1 class="h2 fw-bold mb-2" style="letter-spacing: -0.02em;">{{ job.title }}</h1>
-                <div class="d-flex align-items-center gap-3 text-active" style="font-size: 0.9rem;">
-                    <span><i data-lucide="map-pin" size="14" class="me-1"></i> Remote / Global</span>
-                    <span><i data-lucide="clock" size="14" class="me-1"></i> Full-time</span>
-                    <span class="status-pill px-2 py-0" style="background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); font-size: 11px; border-radius: 4px;">
-                        Verified Role
-                    </span>
-                </div>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn-utility" onclick="copyPageLink()">
-                    <i data-lucide="link-2" size="16"></i>
-                    Copy Link
-                </button>
-            </div>
-        </div>
+    .glass-card {
+        background: rgba(24, 24, 27, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border-subtle);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        width: 100%;
+        max-width: 1100px; /* Optimized width for the 2-column layout */
+    }
 
-        <div class="row g-0">
-            <!-- Left Side: Job Info -->
-            <div class="col-lg-5">
-                <div class="sidebar-info">
-                    <section class="mb-5">
-                        <h6 class="fw-bold mb-3 d-flex align-items-center text-uppercase" style="letter-spacing: 0.1em; color: var(--zinc-400);">
-                            <i data-lucide="info" class="me-2 text-primary" size="18"></i>
-                            Position Overview
-                        </h6>
-                        <p class="text-secondary-custom">
-                            {{ job.description }}
-                        </p>
-                    </section>
+    .job-info-sidebar {
+        background: rgba(99, 102, 241, 0.03);
+        border-right: 1px solid var(--border-subtle);
+        padding: 48px;
+        display: flex;
+        flex-direction: column;
+    }
 
-                    <section>
-                        <h6 class="fw-bold mb-3 d-flex align-items-center text-uppercase" style="letter-spacing: 0.1em; color: var(--zinc-400);">
-                            <i data-lucide="layers" class="me-2 text-primary" size="18"></i>
-                            Requirement Tags
-                        </h6>
-                        <div class="d-flex flex-wrap">
-                            {% for skill in job.tech_stack %}
-                            <span class="badge-tech">{{ skill }}</span>
-                            {% endfor %}
-                            {% if not job.tech_stack %}
-                            <span class="badge-tech">Frontend</span>
-                            <span class="badge-tech">Backend</span>
-                            <span class="badge-tech">Engineering</span>
-                            {% endif %}
-                        </div>
-                    </section>
-                </div>
-            </div>
+    .form-section {
+        padding: 48px;
+    }
 
-            <!-- Right Side: Application Form -->
-            <div class="col-lg-7">
-                <div class="form-section">
-                    <div class="mb-4">
-                        <h4 class="fw-bold mb-1">Apply Now</h4>
-                        <p class="text-active small">Please fill out the details for AI-driven skill matching.</p>
-                    </div>
-                    
-                    {% if request.args.get('error') == 'invalidfile' %}
-                        <p style="color:red;">Invalid file type. Only PDF or DOCX allowed.</p>
-                    {% endif %}
+    .form-label {
+        color: var(--zinc-400);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        margin-bottom: 8px;
+    }
 
-                    <form method="POST" action="/upload/{{ job.id }}" enctype="multipart/form-data">
-                        <div class="mb-4">
-                            <label class="form-label d-flex justify-content-between">
-                                Full Name
-                                <span class="text-active fw-normal" style="font-size: 10px;">REQUIRED</span>
-                            </label>
-                            <input type="text" class="form-control" placeholder="e.g. Alex Johnson" required>
-                        </div>
+    .form-control {
+        background: var(--zinc-900);
+        border: 1px solid var(--zinc-800);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
 
-                        <div class="mb-4">
-                            <label class="form-label">Email Address</label>
-                            <input type="email" class="form-control" placeholder="alex@example.com" required>
-                        </div>
+    .form-control:focus {
+        background: var(--zinc-800);
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        color: white;
+        outline: none;
+    }
 
-                        <div class="mb-4">
-                            <label class="form-label">Resume Submission</label>
-                            <div class="file-upload-wrapper" onclick="document.getElementById('resumeInput').click()">
-                                <i data-lucide="upload-cloud" class="text-primary mb-2" size="32"></i>
-                                <p class="mb-1 fw-bold">Click to upload resume</p>
-                                <p class="text-active small mb-0">PDF or DOCX supported (Neural screen ready)</p>
-                                <input type="file" name="resume" id="resumeInput" class="d-none" required onchange="updateFileName(this)">
-                            </div>
-                            <div id="file-name-display" class="mt-2 text-primary small fw-medium"></div>
-                        </div>
+    .file-upload-wrapper {
+        position: relative;
+        border: 2px dashed var(--zinc-800);
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.2s ease;
+        background: rgba(255,255,255,0.01);
+    }
 
-                        <button type="submit" class="btn btn-submit">
-                            Submit Application
-                        </button>
-                    </form>
-                    <div id="loadingSpinner" style="display:none;">
-    Processing resume...
-</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    .file-upload-wrapper:hover {
+        border-color: var(--brand-primary);
+        background: rgba(99, 102, 241, 0.05);
+    }
+
+    .file-upload-input {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .btn-submit {
+        background: var(--brand-primary);
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+    .btn-submit:hover {
+        background: #4f46e5;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+    }
+
+    .badge-job {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--brand-primary);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        padding: 6px 12px;
+        border-radius: 99px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .job-desc-scroll {
+        max-height: 250px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--zinc-700) transparent;
+        padding-right: 10px;
+    }
     
-    <div class="text-center mt-4">
-        <p class="text-active small" style="opacity: 0.6;">© 2024 Global Career Portal. Built with SecureHire Engine.</p>
-    </div>
-</div>
+    .job-desc-scroll::-webkit-scrollbar { width: 4px; }
+    .job-desc-scroll::-webkit-scrollbar-thumb { background: var(--zinc-700); border-radius: 10px; }
 
-<!-- Floating Navigation -->
-<div class="profile-bar">
-    <a href="/dashboard" class="btn-profile">
-        <i data-lucide="user" size="18"></i>
-        <span>Return to Dashboard</span>
-    </a>
-</div>
-
-<div id="toast" class="toast-msg">Success! Link copied to clipboard</div>
-
-<script>
-    // Initialize Lucide Icons
-    lucide.createIcons();
-
-    // UI Logic
-    function updateFileName(input) {
-        const display = document.getElementById('file-name-display');
-        if (input.files.length > 0) {
-            display.innerHTML = `<i data-lucide="check-circle" size="14" class="me-1"></i> Ready for submission: ${input.files[0].name}`;
-            lucide.createIcons();
+    .text-zinc-400 { color: var(--zinc-400); }
+    .text-zinc-500 { color: var(--zinc-700); }
+    .smaller { font-size: 0.75rem; }
+    
+    @media (max-width: 991.98px) {
+        .job-info-sidebar {
+            border-right: none;
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 30px;
+        }
+        .form-section {
+            padding: 30px;
         }
     }
+</style>
 
-    function copyPageLink() {
-        const url = window.location.href;
-        const dummy = document.createElement('input');
-        document.body.appendChild(dummy);
-        dummy.value = url;
-        dummy.select();
-        document.execCommand('copy');
-        document.body.removeChild(dummy);
+<div class="apply-wrapper">
+    <div class="glass-card">
+        <div class="row g-0">
+            <!-- Left Panel: Job Summary -->
+            <div class="col-lg-5 job-info-sidebar">
+                <div class="mb-4">
+                    <span class="badge-job mb-3 d-inline-block">Active Opening</span>
+                    <h1 class="fw-bold h2 mb-3 text-white">{{ job.title }}</h1>
+                    <div class="d-flex align-items-center gap-2 text-zinc-400 smaller">
+                        <i data-lucide="map-pin" size="16"></i> Remote / Hybrid
+                        <span class="mx-1">•</span>
+                        <i data-lucide="clock" size="16"></i> Full-time
+                    </div>
+                </div>
 
-        const toast = document.getElementById('toast');
-        toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, 3000);
-    }
-    window.onload = function(){
+                <div class="mt-4">
+                    <h6 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+                        <i data-lucide="align-left" size="18" class="text-primary"></i>
+                        Position Overview
+                    </h6>
+                    <div class="job-desc-scroll">
+                        <p class="text-zinc-400 small lh-lg" style="white-space: pre-line;">{{ job.description }}</p>
+                    </div>
+                </div>
 
-    let toast = document.getElementById("uploadToast");
+                <div class="mt-auto pt-5">
+                    <div class="p-3 rounded-4 border border-subtle bg-zinc-900 bg-opacity-50">
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="bg-primary bg-opacity-10 p-2 rounded-3">
+                                <i data-lucide="shield-check" class="text-primary" size="20"></i>
+                            </div>
+                            <div>
+                                <p class="text-white small fw-bold mb-0">AI-Powered Screening</p>
+                                <p class="text-zinc-400 smaller mb-0">Your profile is analyzed instantly.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    if(window.location.search.includes("success")){
+            <!-- Right Panel: Application Form -->
+            <div class="col-lg-7 form-section">
+                <div class="mb-4">
+                    <h4 class="fw-bold text-white mb-1">Candidate Details</h4>
+                    <p class="text-zinc-400 small">Fill out the information below to start your application.</p>
+                </div>
 
-        toast.style.display = "block";
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert bg-{{ 'danger' if category == 'error' else 'success' }} bg-opacity-10 border-0 text-{{ 'danger' if category == 'error' else 'success' }} small rounded-3 mb-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i data-lucide="{{ 'alert-circle' if category == 'error' else 'check-circle' }}" size="18"></i>
+                                    {{ message }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
 
-        setTimeout(()=>{
-            toast.style.display = "none";
-        },3000);
+                <form method="POST" 
+                      action="{% if public_mode %}{% else %}{{ url_for('upload_resume', job_id=job.id) }}{% endif %}" 
+                      enctype="multipart/form-data">
+                    
+                    {% if public_mode %}
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="John Doe" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="john@company.com" required>
+                        </div>
+                    </div>
+                    {% endif %}
 
-    }
+                    <div class="mb-4">
+                        <label class="form-label">Curriculum Vitae</label>
+                        <div class="file-upload-wrapper" id="dropZone">
+                            <i data-lucide="upload-cloud" class="text-zinc-700 mb-3" size="40" id="uploadIcon"></i>
+                            <div id="fileInfo">
+                                <p class="text-white small fw-bold mb-1">Click or drag resume here</p>
+                                <p class="text-zinc-400 smaller mb-0">PDF format only (Max 10MB)</p>
+                            </div>
+                            <input type="file" class="file-upload-input" id="resume" name="resume" accept=".pdf" required>
+                        </div>
+                    </div>
 
-}
-</script>
-<div id="uploadToast" class="toast-message">
-    Resume uploaded successfully ✓
+                    <button type="submit" class="btn btn-primary btn-submit w-100 text-white">
+                    {% if public_mode %}
+                        Submit Application
+                    {% else %}
+                        Upload Resume
+                    {% endif %}
+                    </button>
+                    
+                    <div class="text-center mt-4">
+                        <p class="smaller text-zinc-400 mb-0 d-flex align-items-center justify-content-center gap-2">
+                            <i data-lucide="lock" size="14"></i>
+                            Secure data processing via ScreenAI Intelligence
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
-</body>
-</html>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+
+    const fileInput = document.getElementById('resume');
+    const fileInfo = document.getElementById('fileInfo');
+    const uploadIcon = document.getElementById('uploadIcon');
+    const dropZone = document.getElementById('dropZone');
+
+    fileInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            const fileName = this.files[0].name;
+            fileInfo.innerHTML = `
+                <p class="text-primary small fw-bold mb-1">Selected File:</p>
+                <p class="text-white smaller mb-0">${fileName}</p>
+            `;
+            uploadIcon.classList.remove('text-zinc-700');
+            uploadIcon.classList.add('text-primary');
+            dropZone.style.borderColor = 'var(--brand-primary)';
+            dropZone.style.background = 'rgba(99, 102, 241, 0.05)';
+        }
+    });
+</script>
+{% endblock %}

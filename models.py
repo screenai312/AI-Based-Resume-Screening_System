@@ -24,6 +24,7 @@ class Job(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     resumes = db.relationship('Resume', backref='job', lazy=True, cascade="all, delete")
+    public_token = db.Column(db.String(100), unique=True, nullable=False)
 
 
 # ===================== RESUME =====================
