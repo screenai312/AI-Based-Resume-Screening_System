@@ -172,8 +172,6 @@ class Resume(db.Model):
     filename = db.Column(db.String(200))
     content = db.Column(db.Text)
     score = db.Column(db.Float)    
-    original_filename = db.Column(db.String(200))
-    candidate_email = db.Column(db.String(120))
     status = db.Column(db.String(50), default="Pending")
     candidate_name = db.Column(db.String(100))
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -684,11 +682,9 @@ def public_apply(public_token):
 
         new_resume = Resume(
         filename=unique_filename,
-        original_filename=original_filename,
         content=text,
         score=score,
         candidate_name=name,
-        candidate_email=email,
         job_id=job.id,
         user_id=job.user_id
     )
@@ -790,7 +786,6 @@ def upload_resume(job_id):
     # =========================
     new_resume = Resume(
     filename=unique_filename,
-    original_filename=original_filename,
     content=text,
     job_id=job.id,
     score=score,
