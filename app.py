@@ -578,36 +578,50 @@ def update_status(resume_id):
 @app.route("/fix-public-token-column")
 def fix_public_token_column():
     try:
-        with db.engine.connect() as conn:
-            # Step 1: add column if missing
-            try:
-                conn.execute(text("ALTER TABLE job ADD COLUMN public_token VARCHAR(100);"))
-                conn.commit()
-            except Exception:
-                conn.rollback()
-
-            # Step 2: fill NULL values with UUID-like random strings
-            jobs = Job.query.all()
-            updated = 0
-
-            for job in jobs:
-                if not getattr(job, "public_token", None):
-                    job.public_token = str(uuid.uuid4())
-                    updated += 1
-
+        # Step 1: add column if missing
+        try:
+            db.session.execute(text("ALTER TABLE job ADD COLUMN public_token VARCHAR(100);"))
             db.session.commit()
+        except Exception as e:
+            db.session.rollback()
 
-            # Step 3: try to make values unique
-            try:
-                conn.execute(text("ALTER TABLE job ADD CONSTRAINT job_public_token_unique UNIQUE (public_token);"))
-                conn.commit()
-            except Exception:
-                conn.rollback()
+        # Step 2: fill all NULL values using PostgreSQL md5/random fallback
+        try:
+            db.session.execute(text("""
+                UPDATE job
+                SET public_token = md5(random()::text || clock_timestamp()::text)
+                WHERE public_token IS NULL;
+            """))
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            return f"Error while filling tokens: {str(e)}"
 
-        return f"public_token fix completed successfully. Updated {updated} jobs."
+        # Step 3: add unique constraint if missing
+        try:
+            db.session.execute(text("""
+                ALTER TABLE job
+                ADD CONSTRAINT job_public_token_unique UNIQUE (public_token);
+            """))
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+
+        # Step 4: set NOT NULL if possible
+        try:
+            db.session.execute(text("""
+                ALTER TABLE job
+                ALTER COLUMN public_token SET NOT NULL;
+            """))
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+
+        return "public_token column fixed successfully."
 
     except Exception as e:
-        return f"Error while fixing public_token column: {str(e)}"
+        db.session.rollback()
+        return f"Fix failed: {str(e)}"
 #========================
 # LOGIN REQUIRED DECORATOR
 #========================
