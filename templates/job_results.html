@@ -468,7 +468,7 @@ font-size:12px;
                                     <i data-lucide="user-round" size="20"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-important">{{ resume.filename }}</div>
+                                    <div class="fw-bold text-important">{{ resume.original_filename or resume.filename }}</div>
                                     <!-- FIXED: Using string filter to prevent subscriptable error on integer IDs -->
                                     <div class=" small">ID: #{{ (resume.id | string)[:8] }}...</div>
                                 </div>

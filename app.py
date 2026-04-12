@@ -11,7 +11,6 @@ from flask import abort
 from flask import session, flash
 from flask_login import login_user
 from werkzeug.utils import secure_filename
-from sqlalchemy import text
 import io
 import uuid
 import os
@@ -173,7 +172,8 @@ class Resume(db.Model):
     filename = db.Column(db.String(200))
     content = db.Column(db.Text)
     score = db.Column(db.Float)    
-
+    original_filename = db.Column(db.String(200))
+    candidate_email = db.Column(db.String(120))
     status = db.Column(db.String(50), default="Pending")
     candidate_name = db.Column(db.String(100))
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -425,29 +425,7 @@ def change_password():
 
     return jsonify({"message": "Password updated successfully"})
 
-# ======================
-# TEMPORARY FIX ROUTE FOR PUBLIC TOKENS
-# ======================    
-@app.route("/debug-job-links")
-@login_required
-def debug_job_links():
-    jobs = Job.query.filter_by(user_id=session["user_id"]).all()
 
-    output = ""
-    for job in jobs:
-        output += f"""
-        <p>
-            <strong>{job.title}</strong><br>
-            Job ID: {job.id}<br>
-            Public Token: {job.public_token}<br>
-            Public Link:
-            <a href="{url_for('public_apply', public_token=job.public_token, _external=True)}" target="_blank">
-                {url_for('public_apply', public_token=job.public_token, _external=True)}
-            </a>
-        </p>
-        <hr>
-        """
-    return output
 # ======================
 # Database initialization
 # ======================
@@ -598,24 +576,7 @@ def update_status(resume_id):
 
     return redirect(request.referrer)
 
-# ======================
-@app.route("/fix-public-token-column")
-def fix_public_token_column():
-    try:
-        db.session.execute(text("ALTER TABLE job ADD COLUMN IF NOT EXISTS public_token VARCHAR(100);"))
-        db.session.commit()
 
-        db.session.execute(text("""
-            UPDATE job
-            SET public_token = md5(random()::text || clock_timestamp()::text)
-            WHERE public_token IS NULL;
-        """))
-        db.session.commit()
-
-        return "public_token column fixed successfully."
-    except Exception as e:
-        db.session.rollback()
-        return f"Fix failed: {str(e)}"
 #========================
 # LOGIN REQUIRED DECORATOR
 #========================
@@ -626,7 +587,6 @@ def require_login():
         "register",
         "forgot_password",
         "reset_password",
-        "fix_public_token_column",
         "public_apply",
         "static"
     ]
@@ -672,15 +632,6 @@ def add_job():
 # ======================
 # FOR OLD JOBS
 # ======================
-@app.route("/fix-job-tokens")
-def fix_job_tokens():
-    jobs = Job.query.filter((Job.public_token == None) | (Job.public_token == "")).all()
-
-    for job in jobs:
-        job.public_token = str(uuid.uuid4())
-
-    db.session.commit()
-    return "Public tokens added to existing jobs successfully."
 
 # ======================
 # PUBLIC APPLY ROUTE
@@ -732,13 +683,15 @@ def public_apply(public_token):
         )
 
         new_resume = Resume(
-            filename=unique_filename,
-            content=text,
-            score=score,
-            candidate_name=name,
-            job_id=job.id,
-            user_id=job.user_id
-        )
+        filename=unique_filename,
+        original_filename=original_filename,
+        content=text,
+        score=score,
+        candidate_name=name,
+        candidate_email=email,
+        job_id=job.id,
+        user_id=job.user_id
+    )
 
         db.session.add(new_resume)
         db.session.commit()
@@ -836,11 +789,12 @@ def upload_resume(job_id):
     # SAVE TO DATABASE
     # =========================
     new_resume = Resume(
-        filename=unique_filename,   # ✅ SAVE UNIQUE NAME
-        content=text,
-        job_id=job.id,
-        score=score,
-        user_id=session["user_id"]
+    filename=unique_filename,
+    original_filename=original_filename,
+    content=text,
+    job_id=job.id,
+    score=score,
+    user_id=session["user_id"]
     )
 
     db.session.add(new_resume)
@@ -875,7 +829,7 @@ def delete_resume(resume_id):
     return redirect(url_for("job_results", job_id=job_id))
 
 #delete job
-@app.route("/delete_job/<int:job_id>")
+@app.route("/delete_job/<int:job_id>", methods=["POST"])
 def delete_job(job_id):
 
     job = Job.query.filter_by(
