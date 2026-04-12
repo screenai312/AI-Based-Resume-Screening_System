@@ -163,6 +163,7 @@ class Job(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    public_token = db.Column(db.String(100), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     resumes = db.relationship("Resume", backref="job", lazy=True)
 
@@ -602,6 +603,7 @@ def require_login():
         "forgot_password",
         "reset_password",
         "fix_public_token_column",
+        "public_apply",
         "static"
     ]
 
@@ -633,7 +635,7 @@ def add_job():
             title=title,
             description=description,
             user_id=session["user_id"],
-             # IMPORTANT FIX
+            public_token=str(uuid.uuid4()) # IMPORTANT FIX
         )
 
         db.session.add(new_job)
@@ -646,9 +648,9 @@ def add_job():
 # ======================
 # FOR OLD JOBS
 # ======================
-#@app.route("/fix-job-tokens")
-#def fix_job_tokens():
- #   jobs = Job.query.filter((Job.public_token == None) | (Job.public_token == "")).all()
+@app.route("/fix-job-tokens")
+def fix_job_tokens():
+    jobs = Job.query.filter((Job.public_token == None) | (Job.public_token == "")).all()
 
     for job in jobs:
         job.public_token = str(uuid.uuid4())
