@@ -1,8 +1,16 @@
 import re
 from sentence_transformers import SentenceTransformer, util
 
+_model = None
+
+
+def get_model():
+    global _model
+    if _model is None:
+        _model = SentenceTransformer("all-MiniLM-L6-v2")
+    return _model
+
 # Lightweight model for semantic text similarity
-model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 def clean_text(text: str) -> str:
@@ -94,10 +102,10 @@ def semantic_similarity_score(resume_text: str, job_text: str) -> float:
     if not resume_text or not job_text:
         return 0.0
 
+    model = get_model()
     embeddings = model.encode([resume_text, job_text], convert_to_tensor=True)
     similarity = util.cos_sim(embeddings[0], embeddings[1]).item()
 
-    # Convert similarity into score
     score = max(0, min(100, round(similarity * 100, 2)))
     return score
 
