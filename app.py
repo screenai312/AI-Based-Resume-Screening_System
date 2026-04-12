@@ -7,6 +7,7 @@ from functools import wraps
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from pypdf import PdfReader
+from ai_scoring import safe_calculate_hybrid_resume_analysis
 from flask import abort
 from flask import session, flash
 from flask_login import login_user
@@ -668,17 +669,8 @@ def public_apply(public_token):
 
         text = extract_text(filepath)
 
-        keyword_score = calculate_match_score(text, job.description)
-        skill_score = keyword_score
-        experience_score = keyword_score * 0.9
-        education_score = keyword_score * 0.8
-
-        score = calculate_final_score(
-            skill_score,
-            experience_score,
-            education_score,
-            keyword_score
-        )
+        analysis = safe_calculate_hybrid_resume_analysis(text, job.description)
+        score = analysis["final_score"]
 
         new_resume = Resume(
         filename=unique_filename,
@@ -769,17 +761,8 @@ def upload_resume(job_id):
     # =========================
     # AI SCORING
     # =========================
-    keyword_score = calculate_match_score(text, job.description)
-    skill_score = keyword_score
-    experience_score = keyword_score * 0.9
-    education_score = keyword_score * 0.8
-
-    score = calculate_final_score(
-        skill_score,
-        experience_score,
-        education_score,
-        keyword_score
-    )
+    analysis = safe_calculate_hybrid_resume_analysis(text, job.description)
+    score = analysis["final_score"]
 
     # =========================
     # SAVE TO DATABASE
