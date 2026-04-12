@@ -424,6 +424,30 @@ def change_password():
     db.session.commit()
 
     return jsonify({"message": "Password updated successfully"})
+
+# ======================
+# TEMPORARY FIX ROUTE FOR PUBLIC TOKENS
+# ======================    
+@app.route("/debug-job-links")
+@login_required
+def debug_job_links():
+    jobs = Job.query.filter_by(user_id=session["user_id"]).all()
+
+    output = ""
+    for job in jobs:
+        output += f"""
+        <p>
+            <strong>{job.title}</strong><br>
+            Job ID: {job.id}<br>
+            Public Token: {job.public_token}<br>
+            Public Link:
+            <a href="{url_for('public_apply', public_token=job.public_token, _external=True)}" target="_blank">
+                {url_for('public_apply', public_token=job.public_token, _external=True)}
+            </a>
+        </p>
+        <hr>
+        """
+    return output
 # ======================
 # Database initialization
 # ======================

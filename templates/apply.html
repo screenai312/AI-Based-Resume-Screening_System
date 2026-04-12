@@ -20,12 +20,11 @@
         padding: 0;
     }
 
-    /* Central Wrapper Logic */
     .apply-wrapper {
         min-height: 100vh;
         display: flex;
-        align-items: center; /* Vertical Center */
-        justify-content: center; /* Horizontal Center */
+        align-items: center;
+        justify-content: center;
         padding: 20px;
         background-color: var(--zinc-950);
     }
@@ -38,7 +37,7 @@
         overflow: hidden;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         width: 100%;
-        max-width: 1100px; /* Optimized width for the 2-column layout */
+        max-width: 1100px;
     }
 
     .job-info-sidebar {
@@ -129,7 +128,7 @@
     }
 
     .job-desc-scroll {
-        max-height: 250px;
+        max-height: 200px;
         overflow-y: auto;
         scrollbar-width: thin;
         scrollbar-color: var(--zinc-700) transparent;
@@ -139,8 +138,31 @@
     .job-desc-scroll::-webkit-scrollbar { width: 4px; }
     .job-desc-scroll::-webkit-scrollbar-thumb { background: var(--zinc-700); border-radius: 10px; }
 
-    .text-zinc-400 { color: var(--zinc-400); }
-    .text-zinc-500 { color: var(--zinc-700); }
+    /* Modern Copy Link Card */
+    .link-utility-card {
+        background: rgba(18, 18, 27, 0.4);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 16px;
+        margin-top: 24px;
+    }
+
+    .btn-copy-link {
+        background: var(--brand-primary);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .btn-copy-link:hover {
+        background: #4f46e5;
+        transform: scale(1.02);
+    }
+
     .smaller { font-size: 0.75rem; }
     
     @media (max-width: 991.98px) {
@@ -158,7 +180,7 @@
 <div class="apply-wrapper">
     <div class="glass-card">
         <div class="row g-0">
-            <!-- Left Panel: Job Summary -->
+            <!-- Left Panel: Job Summary & Internal Tools -->
             <div class="col-lg-5 job-info-sidebar">
                 <div class="mb-4">
                     <span class="badge-job mb-3 d-inline-block">Active Opening</span>
@@ -179,6 +201,27 @@
                         <p class="text-zinc-400 small lh-lg" style="white-space: pre-line;">{{ job.description }}</p>
                     </div>
                 </div>
+
+                {% if not public_mode %}
+                <!-- Hiring Manager Tools -->
+                <div class="link-utility-card">
+                    <label class="form-label mb-2 d-flex align-items-center gap-2">
+                        <i data-lucide="share-2" size="14"></i>
+                        Recruitment Link
+                    </label>
+                    <div class="d-flex flex-column gap-2">
+                        <input type="text" 
+                               class="form-control form-control-sm smaller text-zinc-400 border-0 bg-black bg-opacity-20" 
+                               id="publicApplyLink" 
+                               value="{{ url_for('public_apply', public_token=job.public_token, _external=True) }}" 
+                               readonly>
+                        <button type="button" class="btn-copy-link d-flex align-items-center justify-content-center gap-2" onclick="copyApplyLink()" id="copyBtn">
+                            <i data-lucide="copy" size="14"></i>
+                            <span id="copyBtnText">Copy Public Link</span>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="mt-auto pt-5">
                     <div class="p-3 rounded-4 border border-subtle bg-zinc-900 bg-opacity-50">
@@ -215,10 +258,7 @@
                     {% endif %}
                 {% endwith %}
 
-                <form method="POST" 
-                      action="{% if public_mode %}{% else %}{{ url_for('upload_resume', job_id=job.id) }}{% endif %}" 
-                      enctype="multipart/form-data">
-                    
+                <form method="POST" action="{{ url_for('public_apply', public_token=job.public_token) if public_mode else url_for('upload_resume', job_id=job.id) }}" enctype="multipart/form-data">
                     {% if public_mode %}
                     <div class="row g-3 mb-4">
                         <div class="col-md-12">
@@ -245,11 +285,7 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-submit w-100 text-white">
-                    {% if public_mode %}
-                        Submit Application
-                    {% else %}
-                        Upload Resume
-                    {% endif %}
+                        {{ 'Submit Application' if public_mode else 'Upload Resume' }}
                     </button>
                     
                     <div class="text-center mt-4">
@@ -286,5 +322,31 @@
             dropZone.style.background = 'rgba(99, 102, 241, 0.05)';
         }
     });
+
+    function copyApplyLink() {
+        const input = document.getElementById("publicApplyLink");
+        const btn = document.getElementById("copyBtn");
+        const btnText = document.getElementById("copyBtnText");
+        
+        input.select();
+        input.setSelectionRange(0, 99999);
+
+        const execCopy = () => {
+            // Visual feedback instead of alert
+            btn.style.background = "#10b981"; // Success Green
+            btnText.innerText = "Link Copied!";
+            setTimeout(() => {
+                btn.style.background = "var(--brand-primary)";
+                btnText.innerText = "Copy Public Link";
+            }, 2000);
+        };
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(input.value).then(execCopy);
+        } else {
+            document.execCommand("copy");
+            execCopy();
+        }
+    }
 </script>
 {% endblock %}
