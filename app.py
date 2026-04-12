@@ -163,7 +163,6 @@ class Job(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    public_token = db.Column(db.String(100), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     resumes = db.relationship("Resume", backref="job", lazy=True)
 
@@ -578,47 +577,17 @@ def update_status(resume_id):
 @app.route("/fix-public-token-column")
 def fix_public_token_column():
     try:
-        # Step 1: add column if missing
-        try:
-            db.session.execute(text("ALTER TABLE job ADD COLUMN public_token VARCHAR(100);"))
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
+        db.session.execute(text("ALTER TABLE job ADD COLUMN IF NOT EXISTS public_token VARCHAR(100);"))
+        db.session.commit()
 
-        # Step 2: fill all NULL values using PostgreSQL md5/random fallback
-        try:
-            db.session.execute(text("""
-                UPDATE job
-                SET public_token = md5(random()::text || clock_timestamp()::text)
-                WHERE public_token IS NULL;
-            """))
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            return f"Error while filling tokens: {str(e)}"
-
-        # Step 3: add unique constraint if missing
-        try:
-            db.session.execute(text("""
-                ALTER TABLE job
-                ADD CONSTRAINT job_public_token_unique UNIQUE (public_token);
-            """))
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-
-        # Step 4: set NOT NULL if possible
-        try:
-            db.session.execute(text("""
-                ALTER TABLE job
-                ALTER COLUMN public_token SET NOT NULL;
-            """))
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
+        db.session.execute(text("""
+            UPDATE job
+            SET public_token = md5(random()::text || clock_timestamp()::text)
+            WHERE public_token IS NULL;
+        """))
+        db.session.commit()
 
         return "public_token column fixed successfully."
-
     except Exception as e:
         db.session.rollback()
         return f"Fix failed: {str(e)}"
@@ -633,7 +602,6 @@ def require_login():
         "forgot_password",
         "reset_password",
         "fix_public_token_column",
-        "public_apply",
         "static"
     ]
 
@@ -665,7 +633,6 @@ def add_job():
             title=title,
             description=description,
             user_id=session["user_id"],
-            public_token=str(uuid.uuid4())
              # IMPORTANT FIX
         )
 
@@ -679,9 +646,9 @@ def add_job():
 # ======================
 # FOR OLD JOBS
 # ======================
-@app.route("/fix-job-tokens")
-def fix_job_tokens():
-    jobs = Job.query.filter((Job.public_token == None) | (Job.public_token == "")).all()
+#@app.route("/fix-job-tokens")
+#def fix_job_tokens():
+ #   jobs = Job.query.filter((Job.public_token == None) | (Job.public_token == "")).all()
 
     for job in jobs:
         job.public_token = str(uuid.uuid4())
