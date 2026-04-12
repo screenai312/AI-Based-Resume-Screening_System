@@ -11,6 +11,7 @@ from flask import abort
 from flask import session, flash
 from flask_login import login_user
 from werkzeug.utils import secure_filename
+from sqlalchemy import text
 import io
 import uuid
 import os
@@ -572,6 +573,41 @@ def update_status(resume_id):
         db.session.commit()
 
     return redirect(request.referrer)
+
+# ======================
+@app.route("/fix-public-token-column")
+def fix_public_token_column():
+    try:
+        with db.engine.connect() as conn:
+            # Step 1: add column if missing
+            try:
+                conn.execute(text("ALTER TABLE job ADD COLUMN public_token VARCHAR(100);"))
+                conn.commit()
+            except Exception:
+                conn.rollback()
+
+            # Step 2: fill NULL values with UUID-like random strings
+            jobs = Job.query.all()
+            updated = 0
+
+            for job in jobs:
+                if not getattr(job, "public_token", None):
+                    job.public_token = str(uuid.uuid4())
+                    updated += 1
+
+            db.session.commit()
+
+            # Step 3: try to make values unique
+            try:
+                conn.execute(text("ALTER TABLE job ADD CONSTRAINT job_public_token_unique UNIQUE (public_token);"))
+                conn.commit()
+            except Exception:
+                conn.rollback()
+
+        return f"public_token fix completed successfully. Updated {updated} jobs."
+
+    except Exception as e:
+        return f"Error while fixing public_token column: {str(e)}"
 #========================
 # LOGIN REQUIRED DECORATOR
 #========================
@@ -582,6 +618,7 @@ def require_login():
         "register",
         "forgot_password",
         "reset_password",
+        "fix_public_token_column",
         "public_apply",
         "static"
     ]
