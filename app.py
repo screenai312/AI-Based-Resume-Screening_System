@@ -16,8 +16,6 @@ import uuid
 import os
 from flask import send_file
 from werkzeug.security import check_password_hash, generate_password_hash
-
-from ai_scoring import safe_calculate_hybrid_resume_analysis
 os.makedirs("uploads", exist_ok=True)
 
 def normalize_scores():
@@ -679,7 +677,7 @@ def public_apply(public_token):
         skill_score,
         experience_score,
         education_score,
-        keyword_score
+            keyword_score
 )
 
         new_resume = Resume(
