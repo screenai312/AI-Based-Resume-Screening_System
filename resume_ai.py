@@ -40,6 +40,32 @@ def clean_text(text):
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
+def extract_job_requirements(job_description):
+    job_text = clean_text(job_description)
+
+    # extract known skills
+    job_skills = extract_skills_from_text(job_text, COMMON_SKILLS)
+
+    # extract important keywords (fallback if JD is weak)
+    words = re.findall(r"[a-zA-Z][a-zA-Z+#.]{2,}", job_text)
+
+    stopwords = {
+        "the","and","for","with","that","this","have","has","are",
+        "you","your","will","all","our","from","into","using","use",
+        "job","role","candidate","should","must","good","strong",
+        "ability","knowledge","required","preferred","responsible"
+    }
+
+    extra_keywords = [
+        w.lower() for w in words
+        if w.lower() not in stopwords and len(w) > 3
+    ]
+
+    # merge both
+    combined = list(set(job_skills + extra_keywords[:20]))
+
+    return job_skills, combined
+
 
 def extract_skills_from_text(text, skill_list=None):
     text = clean_text(text)
@@ -353,10 +379,17 @@ def analyze_resume_against_job(resume_text, job_description):
     # SKILL MATCHING
     # =========================
     resume_skills = extract_skills_from_text(text)
-    job_skills = extract_skills_from_text(job_text)
+
+    job_skills, job_keywords = extract_job_requirements(job_description)
 
     matched_skills = [s for s in job_skills if s in resume_skills]
     missing_skills = [s for s in job_skills if s not in resume_skills]
+
+# 🔥 NEW: keyword-level matching (important)
+    resume_words = set(text.split())
+    job_word_matches = [w for w in job_keywords if w in resume_words]
+
+    keyword_score = (len(job_word_matches) / len(job_keywords)) * 100 if job_keywords else 50
 
     skill_score = 0
     if job_skills:
@@ -409,17 +442,17 @@ def analyze_resume_against_job(resume_text, job_description):
     # =========================
     # KEYWORD MATCH
     # =========================
-    keyword_score = calculate_keyword_match_score(text, job_text)
+    
 
     # =========================
     # FINAL SCORE
     # =========================
     final_score = (
-        0.35 * skill_score +
+        0.50 * skill_score +        # 🔥 MAIN FACTOR
         0.25 * keyword_score +
-        0.20 * experience_score +
-        0.10 * education_score +
-        0.10 * quality_score
+        0.15 * experience_score +
+        0.05 * education_score +
+        0.05 * quality_score
     )
     final_score = round(final_score, 2)
 
@@ -449,6 +482,10 @@ def analyze_resume_against_job(resume_text, job_description):
     if matched_skills:
         strengths.append(f"Candidate matches important skills such as {', '.join(matched_skills[:8])}")
 
+# 🔥 ADD THIS HERE
+    if job_skills:
+        strengths.append(f"Candidate matches {len(matched_skills)} out of {len(job_skills)} required job skills")
+
     strengths.append(experience_line)
     strengths.append(education_line)
 
@@ -462,6 +499,10 @@ def analyze_resume_against_job(resume_text, job_description):
 
     if missing_skills:
         weaknesses.append(f"Missing or weak skills include {', '.join(missing_skills[:8])}")
+
+# 🔥 ADD THIS HERE
+    if job_skills and missing_skills:
+        weaknesses.append(f"{len(missing_skills)} critical job-required skills are missing")
 
     if experience_score < 40:
         weaknesses.append("Relevant practical experience appears limited or not clearly described")
