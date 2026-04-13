@@ -823,17 +823,33 @@ def delete_resume(resume_id):
 def delete_job(job_id):
 
     job = Job.query.filter_by(
-    id=job_id,
-    user_id=session["user_id"]
+        id=job_id,
+        user_id=session["user_id"]
     ).first()
 
     if not job:
-     return "Unauthorized", 403
+        return "Unauthorized", 403
 
+    # First delete all resumes linked to this job
+    resumes = Resume.query.filter_by(
+        job_id=job.id,
+        user_id=session["user_id"]
+    ).all()
+
+    for resume in resumes:
+        filepath = os.path.join("uploads", resume.filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
+        db.session.delete(resume)
+
+    # Then delete the job
     db.session.delete(job)
     db.session.commit()
 
+    flash("Job and all related resumes deleted successfully.", "success")
     return redirect(url_for("jobs"))
+
 @app.route("/jobs")
 @login_required
 def jobs():
