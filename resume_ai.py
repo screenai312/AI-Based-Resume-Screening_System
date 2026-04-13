@@ -2,12 +2,13 @@ import re
 
 
 COMMON_SKILLS = [
-    "python", "java", "javascript", "html", "css", "bootstrap", "flask",
-    "django", "react", "node", "sql", "mysql", "postgresql", "mongodb",
-    "machine learning", "data analysis", "pandas", "numpy", "scikit-learn",
-    "tensorflow", "deep learning", "api", "git", "github", "excel",
-    "power bi", "tableau", "communication", "leadership", "problem solving",
-    "teamwork", "c", "c++", "php"
+    "python","java","c","c++","html","css","javascript","bootstrap",
+    "react","node","flask","django","sql","mysql","postgresql",
+    "mongodb","machine learning","deep learning","data science",
+    "pandas","numpy","tensorflow","scikit-learn",
+    "api","rest api","git","github","docker",
+    "excel","power bi","tableau",
+    "problem solving","communication","teamwork"
 ]
 
 
@@ -216,41 +217,135 @@ def generate_recommendation(final_score):
 
 
 def analyze_resume_against_job(resume_text, job_description):
-    keyword_score = calculate_keyword_match_score(resume_text, job_description)
 
-    skill_score, matched_skills, missing_skills, resume_skills, job_skills = calculate_skill_match(
-        resume_text, job_description
-    )
+    text = clean_text(resume_text)
+    job_text = clean_text(job_description)
 
-    experience_score = calculate_experience_score(resume_text)
-    education_score = calculate_education_score(resume_text)
-    quality_score = calculate_resume_quality_score(resume_text)
+    # =========================
+    # SKILL MATCHING (STRONGER)
+    # =========================
+    resume_skills = extract_skills_from_text(text)
+    job_skills = extract_skills_from_text(job_text)
 
+    matched_skills = [s for s in job_skills if s in resume_skills]
+    missing_skills = [s for s in job_skills if s not in resume_skills]
+
+    skill_score = 0
+    if job_skills:
+        skill_score = (len(matched_skills) / len(job_skills)) * 100
+
+    # =========================
+    # EXPERIENCE DETECTION
+    # =========================
+    experience_score = 0
+    years = re.findall(r"(\d+)\+?\s*(year|years)", text)
+
+    if years:
+        max_year = max(int(y[0]) for y in years)
+        experience_score = min(max_year * 12, 100)
+
+    # check keywords
+    exp_keywords = ["internship", "project", "experience", "worked"]
+    exp_hits = sum(1 for k in exp_keywords if k in text)
+    experience_score += exp_hits * 5
+    experience_score = min(experience_score, 100)
+
+    # =========================
+    # EDUCATION DETECTION
+    # =========================
+    edu_keywords = ["btech", "b.e", "diploma", "computer science", "it", "engineering"]
+    edu_hits = [k for k in edu_keywords if k in text]
+
+    education_score = 40 + len(edu_hits) * 10 if edu_hits else 30
+    education_score = min(education_score, 100)
+
+    # =========================
+    # QUALITY CHECK
+    # =========================
+    word_count = len(text.split())
+
+    quality_score = 0
+    if word_count > 150:
+        quality_score += 30
+    if word_count > 300:
+        quality_score += 30
+    if word_count > 500:
+        quality_score += 20
+
+    # email + phone
+    if re.search(r"\S+@\S+", text):
+        quality_score += 10
+    if re.search(r"\b\d{10}\b", text):
+        quality_score += 10
+
+    quality_score = min(quality_score, 100)
+
+    # =========================
+    # KEYWORD MATCH
+    # =========================
+    keyword_score = calculate_keyword_match_score(text, job_text)
+
+    # =========================
+    # FINAL SCORE
+    # =========================
     final_score = (
         0.35 * skill_score +
-        0.20 * keyword_score +
+        0.25 * keyword_score +
         0.20 * experience_score +
-        0.15 * education_score +
+        0.10 * education_score +
         0.10 * quality_score
     )
 
-    final_score = round(min(final_score, 100), 2)
+    final_score = round(final_score, 2)
 
-    strengths = generate_strengths(
-        matched_skills,
-        experience_score,
-        education_score,
-        quality_score
-    )
+    # =========================
+    # 🔥 STRONG EXPLANATION SYSTEM
+    # =========================
+    strengths = []
+    weaknesses = []
 
-    weaknesses = generate_weaknesses(
-        missing_skills,
-        experience_score,
-        quality_score,
-        resume_text
-    )
+    if matched_skills:
+        strengths.append(f"Strong alignment with required skills like {', '.join(matched_skills[:5])}")
 
-    recommendation = generate_recommendation(final_score)
+    if experience_score > 60:
+        strengths.append("Candidate demonstrates solid hands-on experience through projects or work")
+
+    if quality_score > 70:
+        strengths.append("Resume is well structured and contains sufficient technical information")
+
+    if education_score > 60:
+        strengths.append("Relevant educational background supports the role requirements")
+
+    if not strengths:
+        strengths.append("Basic eligibility met but lacks strong highlights")
+
+    # weaknesses
+    if missing_skills:
+        weaknesses.append(f"Missing important skills such as {', '.join(missing_skills[:5])}")
+
+    if experience_score < 40:
+        weaknesses.append("Limited practical experience detected")
+
+    if quality_score < 50:
+        weaknesses.append("Resume lacks detail and proper structure")
+
+    if word_count < 120:
+        weaknesses.append("Resume is too short for strong evaluation")
+
+    if not weaknesses:
+        weaknesses.append("No major weaknesses detected in initial screening")
+
+    # =========================
+    # RECOMMENDATION (SMART)
+    # =========================
+    if final_score >= 80:
+        recommendation = "Strong Shortlist – Highly suitable candidate"
+    elif final_score >= 65:
+        recommendation = "Shortlist – Good fit with minor gaps"
+    elif final_score >= 50:
+        recommendation = "Hold – Needs further evaluation"
+    else:
+        recommendation = "Reject – Not aligned with job requirements"
 
     return {
         "final_score": final_score,
@@ -261,8 +356,6 @@ def analyze_resume_against_job(resume_text, job_description):
         "quality_score": round(quality_score, 2),
         "matched_skills": matched_skills,
         "missing_skills": missing_skills,
-        "resume_skills": resume_skills,
-        "job_skills": job_skills,
         "strengths": strengths,
         "weaknesses": weaknesses,
         "recommendation": recommendation
