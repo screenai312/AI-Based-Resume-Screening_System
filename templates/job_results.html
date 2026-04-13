@@ -423,7 +423,9 @@ font-size:12px;
                     <i data-lucide="trophy" class="rank-icon-{{ i+1 }}" size="32"></i>
                 </div>
                 <div class=" small text-uppercase fw-bold mb-1">Rank #{{ i+1 }}</div>
-                <h5 class="fw-bold text-truncate px-3 mb-2">{{ top_res.filename }}</h5>
+                <h5 class="fw-bold text-truncate px-3 mb-2">
+    {{ top_res.filename.split('_', 1)[1] if top_res.filename and '_' in top_res.filename else top_res.filename }}
+</h5>
                 <div class="badge bg-primary rounded-pill px-3">{{ top_res.score }}% Match</div>
             </div>
         </div>

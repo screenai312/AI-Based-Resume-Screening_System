@@ -21,7 +21,7 @@
             --brand-danger: #ef4444;
             --brand-warning: #f59e0b;
             --text-main: #f4f4f5;
-            --text-muted: #a1a1aa;
+            --text-active: #a1a1aa;
         }
 
         body {
@@ -48,12 +48,11 @@
 
         /* Component Cards */
         .glass-card {
-            background: var(--surface-rich);
-            border: 1px solid var(--border-muted);
-            border-radius: 20px;
-            padding: 24px;
-            height: 100%;
-            transition: transform 0.2s;
+         background: var(--surface-rich);
+         border: 1px solid var(--border-muted);
+         border-radius: 20px;
+         padding: 24px;
+         transition: transform 0.2s;
         }
 
         /* Score Metrics */
@@ -126,7 +125,7 @@
             font-size: 0.85rem;
             max-height: 400px;
             overflow-y: auto;
-            color: var(--text-muted);
+            color: var(--text-active);
             border: 1px solid var(--border-muted);
         }
 
@@ -149,7 +148,7 @@
 
     <nav class="top-nav">
         <div class="container d-flex justify-content-between align-items-center">
-            <a href="{{ url_for('job_results', job_id=resume.job_id) }}" class="text-muted text-decoration-none small d-flex align-items-center gap-2">
+            <a href="{{ url_for('job_results', job_id=resume.job_id) }}" class="text-active text-decoration-none small d-flex align-items-center gap-2">
                 <i data-lucide="chevron-left" size="18"></i> Back to Applicants
             </a>
             <div class="d-flex gap-3">
@@ -166,11 +165,11 @@
             <div class="col-md-8">
                 <h6 class="text-primary fw-bold text-uppercase tracking-wider mb-2">Recruiter Intelligence Report</h6>
                 <h1 class="fw-extrabold">{{ candidate_name }}</h1>
-                <p class="text-muted mb-0">Applied for: <span class="text-white fw-bold">{{ job.title }}</span> • Processed {{ resume.uploaded_at.strftime('%b %d, %Y') }}</p>
+                <p class="text-active mb-0">Applied for: <span class="text-white fw-bold">{{ job.title }}</span> • Processed {{ resume.uploaded_at.strftime('%b %d, %Y') }}</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <div class="display-5 fw-bold text-primary">{{ resume.score }}<span class="h4 text-muted">/100</span></div>
-                <div class="small text-muted text-uppercase tracking-widest">Neural Match Score</div>
+                <div class="display-5 fw-bold text-primary">{{ resume.score }}<span class="h4 text-active">/100</span></div>
+                <div class="small text-active text-uppercase tracking-widest">Neural Match Score</div>
             </div>
         </div>
 
@@ -224,35 +223,45 @@
                 </div>
 
                 <!-- SKILL INTELLIGENCE -->
-                <div class="glass-card mb-4">
-                    <h6 class="fw-bold mb-4 d-flex align-items-center gap-2">
-                        <i data-lucide="brain-circuit" size="18" class="text-primary"></i> Skill Matrix Analysis
-                    </h6>
-                    <div class="mb-4">
-                        <div class="small text-muted text-uppercase mb-2 tracking-wider">Identified Match</div>
-                        {% for skill in analysis.matched_skills %}
-                        <span class="skill-chip chip-match"><i data-lucide="check" size="12"></i> {{ skill }}</span>
-                        {% endfor %}
-                    </div>
-                    <div>
-                        <div class="small text-muted text-uppercase mb-2 tracking-wider">Identified Gaps</div>
-                        {% for skill in analysis.missing_skills %}
-                        <span class="skill-chip chip-missing"><i data-lucide="x" size="12"></i> {{ skill }}</span>
-                        {% endfor %}
-                    </div>
-                </div>
+            <div class="glass-card mb-4">
+    <h6 class="fw-bold mb-4 d-flex align-items-center gap-2">
+        <i data-lucide="brain-circuit" size="18" class="text-primary"></i> Skill Matrix Analysis
+    </h6>
 
-                <!-- RAW DATA -->
-                <div class="glass-card">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold mb-0 small text-uppercase"><i data-lucide="file-text" size="16" class="me-2"></i>Extracted Resume Data</h6>
-                        <span class="x-small text-muted">OCR SECURE VIEW</span>
-                    </div>
-                    <div class="content-viewport">
-{{ resume.content }}
-                    </div>
-                </div>
-            </div>
+    <div class="mb-4">
+        <div class="small text-active text-uppercase mb-2 tracking-wider">
+            Identified Match
+            <span class="ms-2 text-white">({{ analysis.matched_skills|length if analysis and analysis.matched_skills else 0 }})</span>
+        </div>
+
+        {% if analysis and analysis.matched_skills %}
+            {% for skill in analysis.matched_skills %}
+                <span class="skill-chip chip-match">
+                    <i data-lucide="check" size="12"></i> {{ skill }}
+                </span>
+            {% endfor %}
+        {% else %}
+            <div class="small text-active">No strong skill matches detected yet.</div>
+        {% endif %}
+    </div>
+
+    <div>
+        <div class="small text-active text-uppercase mb-2 tracking-wider">
+            Identified Gaps
+            <span class="ms-2 text-white">({{ analysis.missing_skills|length if analysis and analysis.missing_skills else 0 }})</span>
+        </div>
+
+        {% if analysis and analysis.missing_skills %}
+            {% for skill in analysis.missing_skills %}
+                <span class="skill-chip chip-missing">
+                    <i data-lucide="x" size="12"></i> {{ skill }}
+                </span>
+            {% endfor %}
+        {% else %}
+            <div class="small text-active">No major skill gaps detected for this job.</div>
+        {% endif %}
+    </div>
+</div>
 
             <!-- Right: Performance Metrics -->
             <div class="col-lg-4">
@@ -303,20 +312,20 @@
                 <div class="glass-card">
                     <h6 class="fw-bold mb-3 small text-uppercase">Candidate Context</h6>
                     <div class="mb-3">
-                        <div class="small text-muted">Email Address</div>
+                        <div class="small text-active">Email Address</div>
                         <div class="fw-bold small">{{ candidate_email }}</div>
                     </div>
                     <div class="mb-3">
-                        <div class="small text-muted">Submission Reference</div>
+                        <div class="small text-active">Submission Reference</div>
                         <div class="fw-bold small text-truncate">{{ resume.filename.split('_', 1)[1] if '_' in resume.filename else resume.filename }}</div>
                     </div>
                     <div>
-                        <div class="small text-muted">System Status</div>
+                        <div class="small text-active">System Status</div>
                         <div class="d-flex align-items-center gap-2 mt-1">
                             <span class="status-badge 
                                 {% if resume.status == 'Interview' %}bg-success bg-opacity-10 text-success
                                 {% elif resume.status == 'Reject' %}bg-danger bg-opacity-10 text-danger
-                                {% else %}bg-secondary bg-opacity-10 text-muted{% endif %}">
+                                {% else %}bg-secondary bg-opacity-10 text-active{% endif %}">
                                 {{ resume.status or 'Pending' }}
                             </span>
                         </div>
@@ -330,7 +339,7 @@
     <div class="decision-bar">
         <div class="d-none d-lg-block">
             <h6 class="mb-0 fw-bold">Hiring Action Control</h6>
-            <p class="x-small text-muted mb-0">Update system status based on intelligence.</p>
+            <p class="x-small text-active mb-0">Update system status based on intelligence.</p>
         </div>
         
         <form method="POST" action="{{ url_for('update_status', resume_id=resume.id) }}" class="d-flex gap-3">

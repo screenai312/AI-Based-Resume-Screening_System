@@ -2,13 +2,15 @@ import re
 
 
 COMMON_SKILLS = [
-    "python","java","c","c++","html","css","javascript","bootstrap",
-    "react","node","flask","django","sql","mysql","postgresql",
-    "mongodb","machine learning","deep learning","data science",
-    "pandas","numpy","tensorflow","scikit-learn",
-    "api","rest api","git","github","docker",
-    "excel","power bi","tableau",
-    "problem solving","communication","teamwork"
+    "python", "java", "javascript", "html", "css", "bootstrap", "flask",
+    "django", "react", "node", "node.js", "express", "sql", "mysql",
+    "postgresql", "mongodb", "sqlite", "api", "rest api", "git", "github",
+    "docker", "aws", "machine learning", "deep learning", "data science",
+    "data analysis", "pandas", "numpy", "scikit-learn", "tensorflow",
+    "power bi", "tableau", "excel", "c", "c++", "php", "laravel",
+    "problem solving", "communication", "teamwork", "leadership",
+    "oops", "object oriented programming", "dbms", "operating system",
+    "computer networks", "nlp", "artificial intelligence", "prompt engineering"
 ]
 
 
@@ -44,12 +46,30 @@ def extract_skills_from_text(text, skill_list=None):
     skill_list = skill_list or COMMON_SKILLS
 
     found_skills = []
+
     for skill in skill_list:
-        pattern = r"\b" + re.escape(skill.lower()) + r"\b"
+        skill_lower = skill.lower()
+
+        # exact phrase match
+        if skill_lower in text:
+            found_skills.append(skill)
+            continue
+
+        # word boundary match for safer detection
+        pattern = r"\b" + re.escape(skill_lower) + r"\b"
         if re.search(pattern, text):
             found_skills.append(skill)
 
-    return sorted(list(set(found_skills)))
+    # remove duplicates while preserving order
+    unique_skills = []
+    seen = set()
+    for skill in found_skills:
+        key = skill.lower()
+        if key not in seen:
+            unique_skills.append(skill)
+            seen.add(key)
+
+    return unique_skills
 
 
 def extract_keywords_from_job_description(job_description):
