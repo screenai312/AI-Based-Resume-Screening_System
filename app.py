@@ -14,6 +14,7 @@ from werkzeug.utils import secure_filename
 import io
 import uuid
 import os
+from resume_ai import analyze_resume_against_job
 from flask import send_file
 from werkzeug.security import check_password_hash, generate_password_hash
 os.makedirs("uploads", exist_ok=True)
@@ -668,17 +669,8 @@ def public_apply(public_token):
 
         text = extract_text(filepath)
 
-        keyword_score = calculate_match_score(text, job.description)
-        skill_score = keyword_score
-        experience_score = keyword_score * 0.9
-        education_score = keyword_score * 0.8
-
-        score = calculate_final_score(
-        skill_score,
-        experience_score,
-        education_score,
-            keyword_score
-)
+        analysis = analyze_resume_against_job(text, job.description)
+        score = analysis["final_score"]
 
         new_resume = Resume(
         filename=unique_filename,
@@ -769,17 +761,8 @@ def upload_resume(job_id):
     # =========================
     # AI SCORING
     # =========================
-    keyword_score = calculate_match_score(text, job.description)
-    skill_score = keyword_score
-    experience_score = keyword_score * 0.9
-    education_score = keyword_score * 0.8
-
-    score = calculate_final_score(
-    skill_score,
-    experience_score,
-    education_score,
-    keyword_score
-)
+    analysis = analyze_resume_against_job(text, job.description)
+    score = analysis["final_score"]
 
     # =========================
     # SAVE TO DATABASE
