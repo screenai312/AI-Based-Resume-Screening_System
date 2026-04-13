@@ -984,15 +984,24 @@ def resume_stats():
 @app.route("/download/<int:resume_id>")
 def download_resume(resume_id):
 
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
     resume = Resume.query.filter_by(
-    id=resume_id,
-    user_id=session["user_id"]
+        id=resume_id,
+        user_id=session["user_id"]
     ).first()
 
     if not resume:
-     return "Unauthorized", 403
+        return "Unauthorized", 403
 
-    filepath = os.path.join("uploads", resume.filename)
+    # 🔥 FIX: absolute path
+    filepath = os.path.join(os.getcwd(), "uploads", resume.filename)
+
+    # 🔥 FIX: check file exists
+    if not os.path.exists(filepath):
+        flash("Resume file not found. It may have been removed from server.", "danger")
+        return redirect(url_for("job_results", job_id=resume.job_id))
 
     return send_file(filepath, as_attachment=True)
 # ======================
