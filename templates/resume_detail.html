@@ -139,6 +139,86 @@
             gap: 15px;
             margin-bottom: 24px;
         }
+        .decision-control-wrapper {
+        background: rgba(24, 24, 27, 0.8);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--zinc-800);
+        border-radius: 100px;
+        padding: 10px 10px 10px 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Custom Professional Dropdown */
+    .custom-select-wrapper {
+        position: relative;
+        flex-grow: 1;
+    }
+
+    .professional-dropdown {
+        background: transparent;
+        border: none;
+        color: rgb(0, 88, 204);
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        padding-right: 30px;    
+        appearance: none;
+        outline: none;
+        width: 100%;
+    }
+
+    /* Custom Arrow for Dropdown */
+    .custom-select-wrapper::after {
+        content: '▼';
+        font-size: 0.7rem;
+        color: var(--zinc-400);
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    /* Professional Action Button */
+    .btn-intelligence-update {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, #4f46e5 100%);
+        color: white !important;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 100px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 0.02em;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-intelligence-update:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        filter: brightness(1.1);
+    }
+
+    .btn-intelligence-update i {
+        transition: transform 0.4s ease;
+    }
+
+    .btn-intelligence-update:hover i {
+        transform: rotate(180deg);
+    }
+
+    /* Dark theme option styling */
+    .professional-dropdown option {
+        background: var(--zinc-900);
+        color: var(--zinc-100);
+        padding: 12px;
+    }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--surface-brighter); border-radius: 10px; }
@@ -185,154 +265,199 @@
         </div>
 
         <div class="row g-4">
-            <!-- Left: Strategic Breakdown -->
-            <div class="col-lg-8">
-                
-                <!-- WHY FIT / WHY NOT FIT -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-6">
-                        <div class="sentiment-card positive-sentiment">
-                            <h6 class="d-flex align-items-center gap-2 mb-3 fw-bold text-success">
-                                <i data-lucide="trending-up" size="18"></i> Strategic Alignment
-                            </h6>
-                            <ul class="list-unstyled small mb-0">
-                                {% for point in analysis.strengths or [] %}
-                                <li class="mb-2 d-flex gap-2">
-                                    <i data-lucide="check-circle-2" size="14" class="mt-1 text-success flex-shrink-0"></i>
-                                    <span>{{ point }}</span>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="sentiment-card negative-sentiment">
-                            <h6 class="d-flex align-items-center gap-2 mb-3 fw-bold text-danger">
-                                <i data-lucide="trending-down" size="18"></i> Growth Gaps
-                            </h6>
-                            <ul class="list-unstyled small mb-0">
-                                {% for point in analysis.weaknesses %}
-                                <li class="mb-2 d-flex gap-2">
-                                    <i data-lucide="alert-circle" size="14" class="mt-1 text-danger flex-shrink-0"></i>
-                                    <span>{{ point }}</span>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+    <!-- Left Column -->
+    <div class="col-lg-7">
 
-                <!-- SKILL INTELLIGENCE -->
-            <div class="glass-card mb-4">
-    <h6 class="fw-bold mb-4 d-flex align-items-center gap-2">
-        <i data-lucide="brain-circuit" size="18" class="text-primary"></i> Skill Matrix Analysis
-    </h6>
+        <!-- AI Summary -->
+        <div class="glass-card mb-4">
+            <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                <i data-lucide="file-search" size="18" class="text-primary"></i>
+                Recruiter AI Summary
+            </h6>
 
-    <div class="mb-4">
-        <div class="small text-active text-uppercase mb-2 tracking-wider">
-            Identified Match
-            <span class="ms-2 text-white">({{ analysis.matched_skills|length if analysis and analysis.matched_skills else 0 }})</span>
+            <p class="text-active mb-3" style="line-height: 1.8;">
+                {{ analysis.summary }}
+            </p>
+
+            <div class="small text-uppercase text-active mb-2">AI Explanation</div>
+            <ul class="list-unstyled small mb-0">
+                <li class="mb-2">{{ analysis.skill_line }}</li>
+                <li class="mb-2">{{ analysis.experience_line }}</li>
+                <li class="mb-2">{{ analysis.education_line }}</li>
+                <li class="mb-0">{{ analysis.quality_line }}</li>
+            </ul>
         </div>
 
-        {% if analysis and analysis.matched_skills %}
-            {% for skill in analysis.matched_skills %}
-                <span class="skill-chip chip-match">
-                    <i data-lucide="check" size="12"></i> {{ skill }}
-                </span>
-            {% endfor %}
-        {% else %}
-            <div class="small text-active">No strong skill matches detected yet.</div>
-        {% endif %}
-    </div>
-
-    <div>
-        <div class="small text-active text-uppercase mb-2 tracking-wider">
-            Identified Gaps
-            <span class="ms-2 text-white">({{ analysis.missing_skills|length if analysis and analysis.missing_skills else 0 }})</span>
-        </div>
-
-        {% if analysis and analysis.missing_skills %}
-            {% for skill in analysis.missing_skills %}
-                <span class="skill-chip chip-missing">
-                    <i data-lucide="x" size="12"></i> {{ skill }}
-                </span>
-            {% endfor %}
-        {% else %}
-            <div class="small text-active">No major skill gaps detected for this job.</div>
-        {% endif %}
-    </div>
-</div>
-
-            <!-- Right: Performance Metrics -->
-            <div class="col-lg-4">
-                <div class="glass-card mb-4">
-                    <h6 class="fw-bold mb-4 text-uppercase small">Neural Breakdown</h6>
-                    
-                    <div class="metric-box mb-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="small">Skill Overlap</span>
-                            <span class="small fw-bold">{{ analysis.skill_score }}%</span>
-                        </div>
-                        <div class="progress progress-slim">
-                            <div class="progress-bar bg-primary"style="width: {{ analysis.skill_score }}%"></div>
-                        </div>
-                    </div>
-
-                    <div class="metric-box mb-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="small">Experience Relevance</span>
-                            <span class="small fw-bold">{{ analysis.experience_score }}%</span>
-                        </div>
-                        <div class="progress progress-slim">
-                            <div class="progress-bar bg-success"style="width: {{ analysis.experience_score }}%"></div>
-                        </div>
-                    </div>
-
-                    <div class="metric-box mb-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="small">Education Alignment</span>
-                            <span class="small fw-bold">{{ analysis.education_score }}%</span>
-                        </div>
-                        <div class="progress progress-slim">
-                            <div class="progress-bar bg-warning"style="width: {{ analysis.education_score }}%"></div>
-                        </div>
-                    </div>
-
-                    <div class="metric-box">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="small">Resume Completeness</span>
-                            <span class="small fw-bold">{{ analysis.quality_score }}%</span>
-                        </div>
-                        <div class="progress progress-slim">
-                            <div class="progress-bar bg-info"style="width: {{ analysis.quality_score }}%"></div>
-                        </div>
-                    </div>
+        <!-- WHY FIT / WHY NOT FIT -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="sentiment-card positive-sentiment">
+                    <h6 class="d-flex align-items-center gap-2 mb-3 fw-bold text-success">
+                        <i data-lucide="trending-up" size="18"></i> Strategic Alignment
+                    </h6>
+                    <ul class="list-unstyled small mb-0">
+                        {% for point in analysis.strengths or [] %}
+                        <li class="mb-2 d-flex gap-2">
+                            <i data-lucide="check-circle-2" size="14" class="mt-1 text-success flex-shrink-0"></i>
+                            <span>{{ point }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </div>
+            </div>
 
-                <div class="glass-card">
-                    <h6 class="fw-bold mb-3 small text-uppercase">Candidate Context</h6>
-                    <div class="mb-3">
-                        <div class="small text-active">Email Address</div>
-                        <div class="fw-bold small">{{ candidate_email }}</div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="small text-active">Submission Reference</div>
-                        <div class="fw-bold small text-truncate">{{ resume.filename.split('_', 1)[1] if '_' in resume.filename else resume.filename }}</div>
-                    </div>
-                    <div>
-                        <div class="small text-active">System Status</div>
-                        <div class="d-flex align-items-center gap-2 mt-1">
-                            <span class="status-badge 
-                                {% if resume.status == 'Interview' %}bg-success bg-opacity-10 text-success
-                                {% elif resume.status == 'Reject' %}bg-danger bg-opacity-10 text-danger
-                                {% else %}bg-secondary bg-opacity-10 text-active{% endif %}">
-                                {{ resume.status or 'Pending' }}
-                            </span>
-                        </div>
-                    </div>
+            <div class="col-md-6">
+                <div class="sentiment-card negative-sentiment">
+                    <h6 class="d-flex align-items-center gap-2 mb-3 fw-bold text-danger">
+                        <i data-lucide="trending-down" size="18"></i> Growth Gaps
+                    </h6>
+                    <ul class="list-unstyled small mb-0">
+                        {% for point in analysis.weaknesses or [] %}
+                        <li class="mb-2 d-flex gap-2">
+                            <i data-lucide="alert-circle" size="14" class="mt-1 text-danger flex-shrink-0"></i>
+                            <span>{{ point }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
         </div>
+
+        <!-- RAW DATA -->
+        <div class="glass-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 small text-uppercase">
+                    <i data-lucide="file-text" size="16" class="me-2"></i>Extracted Resume Data
+                </h6>
+                <span class="x-small text-active">Secure Resume View</span>
+            </div>
+            <div class="content-viewport">
+{{ resume.content }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-5">
+
+        <!-- Skill Intelligence -->
+        <div class="glass-card mb-4">
+            <h6 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                <i data-lucide="brain-circuit" size="18" class="text-primary"></i> Skill Matrix Analysis
+            </h6>
+
+            <div class="mb-4">
+                <div class="small text-active text-uppercase mb-2 tracking-wider">
+                    Identified Match
+                    <span class="ms-2 text-white">({{ analysis.matched_skills|length if analysis and analysis.matched_skills else 0 }})</span>
+                </div>
+
+                {% if analysis and analysis.matched_skills %}
+                    {% for skill in analysis.matched_skills %}
+                        <span class="skill-chip chip-match">
+                            <i data-lucide="check" size="12"></i> {{ skill }}
+                        </span>
+                    {% endfor %}
+                {% else %}
+                    <div class="small text-active">No strong skill matches detected yet.</div>
+                {% endif %}
+            </div>
+
+            <div>
+                <div class="small text-active text-uppercase mb-2 tracking-wider">
+                    Identified Gaps
+                    <span class="ms-2 text-white">({{ analysis.missing_skills|length if analysis and analysis.missing_skills else 0 }})</span>
+                </div>
+
+                {% if analysis and analysis.missing_skills %}
+                    {% for skill in analysis.missing_skills %}
+                        <span class="skill-chip chip-missing">
+                            <i data-lucide="x" size="12"></i> {{ skill }}
+                        </span>
+                    {% endfor %}
+                {% else %}
+                    <div class="small text-active">No major skill gaps detected for this job.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Neural Breakdown -->
+        <div class="glass-card mb-4">
+            <h6 class="fw-bold mb-4 text-uppercase small">Neural Breakdown</h6>
+
+            <div class="metric-box mb-3">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small">Skill Overlap</span>
+                    <span class="small fw-bold">{{ analysis.skill_score }}%</span>
+                </div>
+                <div class="progress progress-slim">
+                    <div class="progress-bar bg-primary"style="width: {{ analysis.skill_score }}%"></div>
+                </div>
+            </div>
+
+            <div class="metric-box mb-3">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small">Experience Relevance</span>
+                    <span class="small fw-bold">{{ analysis.experience_score }}%</span>
+                </div>
+                <div class="progress progress-slim">
+                    <div class="progress-bar bg-success"style="width: {{ analysis.experience_score }}%"></div>
+                </div>
+            </div>
+
+            <div class="metric-box mb-3">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small">Education Alignment</span>
+                    <span class="small fw-bold">{{ analysis.education_score }}%</span>
+                </div>
+                <div class="progress progress-slim">
+                    <div class="progress-bar bg-warning"style="width: {{ analysis.education_score }}%"></div>
+                </div>
+            </div>
+
+            <div class="metric-box">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small">Resume Completeness</span>
+                    <span class="small fw-bold">{{ analysis.quality_score }}%</span>
+                </div>
+                <div class="progress progress-slim">
+                    <div class="progress-bar bg-info"style="width: {{ analysis.quality_score }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Candidate Context -->
+        <div class="glass-card">
+            <h6 class="fw-bold mb-3 small text-uppercase">Candidate Context</h6>
+
+            <div class="mb-3">
+                <div class="small text-active">Email Address</div>
+                <div class="fw-bold small">{{ candidate_email }}</div>
+            </div>
+
+            <div class="mb-3">
+                <div class="small text-active">Submission Reference</div>
+                <div class="fw-bold small text-truncate">
+                    {{ resume.filename.split('_', 1)[1] if '_' in resume.filename else resume.filename }}
+                </div>
+            </div>
+
+            <div>
+                <div class="small text-active">System Status</div>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                    <span class="status-badge 
+                        {% if resume.status == 'Interview' %}bg-success bg-opacity-10 text-success
+                        {% elif resume.status == 'Reject' %}bg-danger bg-opacity-10 text-danger
+                        {% else %}bg-secondary bg-opacity-10 text-active{% endif %}">
+                        {{ resume.status or 'Pending' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+ 
     </main>
 
     <!-- Decision Control Center -->
@@ -342,16 +467,32 @@
             <p class="x-small text-active mb-0">Update system status based on intelligence.</p>
         </div>
         
-        <form method="POST" action="{{ url_for('update_status', resume_id=resume.id) }}" class="d-flex gap-3">
-            <select name="status" class="form-select border-zinc-700 bg-zinc-900 text-black rounded-pill px-4 py-2" style="min-width: 200px;">
-                <option value="Viewed" {% if resume.status == 'Viewed' %}selected{% endif %}>Mark as Viewed</option>
-                <option value="Interview" {% if resume.status == 'Interview' %}selected{% endif %}>Schedule Interview</option>
-                <option value="Reject" {% if resume.status == 'Reject' %}selected{% endif %}>Reject Candidate</option>
+        <form method="POST" action="{{ url_for('update_status', resume_id=resume.id) }}">
+    <div class="decision-control-wrapper">
+        <div class="d-none d-md-block">
+            <span class="info-label" style="margin-bottom: 0; font-size: 0.65rem;">Action Phase</span>
+        </div>
+        
+        <div class="custom-select-wrapper">
+            <select name="status" class="professional-dropdown">
+                <option value="Viewed" {% if resume.status == 'Viewed' %}selected{% endif %}>
+                    Mark as Viewed
+                </option>
+                <option value="Interview" {% if resume.status == 'Interview' %}selected{% endif %}>
+                    Schedule Interview
+                </option>
+                <option value="Reject" {% if resume.status == 'Reject' %}selected{% endif %}>
+                    Reject Candidate
+                </option>
             </select>
-            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">
-                Update Status
-            </button>
-        </form>
+        </div>
+
+        <button type="submit" class="btn-intelligence-update">
+            <span>Update Status</span>
+            <i data-lucide="refresh-cw" size="16"></i>
+        </button>
+    </div>
+</form>
     </div>
 
     <script>

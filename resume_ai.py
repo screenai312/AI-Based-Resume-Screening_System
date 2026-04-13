@@ -126,6 +126,115 @@ def calculate_skill_match(resume_text, job_description):
     score = (len(matched_skills) / len(job_skills)) * 100
     return round(score, 2), matched_skills, missing_skills, resume_skills, job_skills
 
+def extract_years_of_experience(text):
+    text = clean_text(text)
+
+    year_patterns = re.findall(r"(\d+)\+?\s*(year|years)", text)
+    if year_patterns:
+        years = max(int(match[0]) for match in year_patterns)
+        return years
+
+    return 0
+
+
+def build_experience_sentence(resume_text):
+    text = clean_text(resume_text)
+    years = extract_years_of_experience(text)
+
+    if years >= 1:
+        return f"Candidate appears to have around {years} year{'s' if years != 1 else ''} of relevant experience mentioned in the resume."
+
+    if "internship" in text or "intern" in text:
+        return "Candidate shows internship-level practical exposure in relevant areas."
+
+    if "project" in text or "projects" in text:
+        return "Candidate shows hands-on exposure through academic or personal projects."
+
+    return "No strong direct experience evidence was clearly detected in the resume."
+
+
+def build_skill_sentence(matched_skills, missing_skills):
+    parts = []
+
+    if matched_skills:
+        parts.append(
+            f"Candidate demonstrates knowledge of {', '.join(matched_skills[:8])}."
+        )
+
+    if missing_skills:
+        parts.append(
+            f"Important gaps were identified in {', '.join(missing_skills[:6])}."
+        )
+    else:
+        parts.append("No major skill gaps were detected against the current job description.")
+
+    return " ".join(parts)
+
+
+def build_education_sentence(resume_text):
+    text = clean_text(resume_text)
+
+    education_terms = [
+        "b.tech", "btech", "b.e", "be", "diploma", "engineering",
+        "computer science", "information technology", "bca", "mca"
+    ]
+
+    found = [term for term in education_terms if term in text]
+
+    if found:
+        cleaned = []
+        for item in found:
+            if item not in cleaned:
+                cleaned.append(item)
+        return f"Resume reflects relevant educational background such as {', '.join(cleaned[:4])}."
+
+    return "Relevant education background is not strongly detailed in the resume."
+
+
+def build_quality_sentence(quality_score, resume_text):
+    word_count = len(clean_text(resume_text).split())
+
+    if quality_score >= 75:
+        return "Resume is well structured and contains sufficient detail for technical evaluation."
+
+    if quality_score >= 50:
+        return "Resume has moderate structure, but some sections could be explained in more depth."
+
+    if word_count < 120:
+        return "Resume is too short, which limits deeper candidate evaluation."
+
+    return "Resume quality is below ideal because structure or detail level appears weak."
+
+
+def build_final_summary(job_title, matched_skills, missing_skills, experience_line, education_line, quality_line, final_score):
+    summary_parts = []
+
+    summary_parts.append(f"This candidate was evaluated for the role of {job_title}.")
+
+    if matched_skills:
+        summary_parts.append(
+            f"The profile shows relevant alignment through skills such as {', '.join(matched_skills[:6])}."
+        )
+
+    summary_parts.append(experience_line)
+    summary_parts.append(education_line)
+    summary_parts.append(quality_line)
+
+    if missing_skills:
+        summary_parts.append(
+            f"The main concerns are missing competencies in {', '.join(missing_skills[:5])}."
+        )
+
+    if final_score >= 80:
+        summary_parts.append("Overall, this profile appears strongly suitable for shortlist consideration.")
+    elif final_score >= 65:
+        summary_parts.append("Overall, this profile is a good fit but still has some noticeable gaps.")
+    elif final_score >= 50:
+        summary_parts.append("Overall, this profile needs manual review before moving forward.")
+    else:
+        summary_parts.append("Overall, this profile appears weak for the current role requirements.")
+
+    return " ".join(summary_parts)
 
 def calculate_experience_score(resume_text):
     text = clean_text(resume_text)
@@ -237,12 +346,11 @@ def generate_recommendation(final_score):
 
 
 def analyze_resume_against_job(resume_text, job_description):
-
     text = clean_text(resume_text)
     job_text = clean_text(job_description)
 
     # =========================
-    # SKILL MATCHING (STRONGER)
+    # SKILL MATCHING
     # =========================
     resume_skills = extract_skills_from_text(text)
     job_skills = extract_skills_from_text(job_text)
@@ -264,8 +372,7 @@ def analyze_resume_against_job(resume_text, job_description):
         max_year = max(int(y[0]) for y in years)
         experience_score = min(max_year * 12, 100)
 
-    # check keywords
-    exp_keywords = ["internship", "project", "experience", "worked"]
+    exp_keywords = ["internship", "project", "projects", "experience", "worked", "developer"]
     exp_hits = sum(1 for k in exp_keywords if k in text)
     experience_score += exp_hits * 5
     experience_score = min(experience_score, 100)
@@ -273,7 +380,7 @@ def analyze_resume_against_job(resume_text, job_description):
     # =========================
     # EDUCATION DETECTION
     # =========================
-    edu_keywords = ["btech", "b.e", "diploma", "computer science", "it", "engineering"]
+    edu_keywords = ["btech", "b.e", "diploma", "computer science", "information technology", "engineering", "bca", "mca"]
     edu_hits = [k for k in edu_keywords if k in text]
 
     education_score = 40 + len(edu_hits) * 10 if edu_hits else 30
@@ -292,7 +399,6 @@ def analyze_resume_against_job(resume_text, job_description):
     if word_count > 500:
         quality_score += 20
 
-    # email + phone
     if re.search(r"\S+@\S+", text):
         quality_score += 10
     if re.search(r"\b\d{10}\b", text):
@@ -315,39 +421,53 @@ def analyze_resume_against_job(resume_text, job_description):
         0.10 * education_score +
         0.10 * quality_score
     )
-
     final_score = round(final_score, 2)
 
     # =========================
-    # 🔥 STRONG EXPLANATION SYSTEM
+    # EXPLANATION LINES
+    # =========================
+    experience_line = build_experience_sentence(resume_text)
+    education_line = build_education_sentence(resume_text)
+    quality_line = build_quality_sentence(quality_score, resume_text)
+    skill_line = build_skill_sentence(matched_skills, missing_skills)
+
+    summary = build_final_summary(
+        "this role",
+        matched_skills,
+        missing_skills,
+        experience_line,
+        education_line,
+        quality_line,
+        final_score
+    )
+
+    # =========================
+    # STRENGTHS
     # =========================
     strengths = []
-    weaknesses = []
 
     if matched_skills:
-        strengths.append(f"Strong alignment with required skills like {', '.join(matched_skills[:5])}")
+        strengths.append(f"Candidate matches important skills such as {', '.join(matched_skills[:8])}")
 
-    if experience_score > 60:
-        strengths.append("Candidate demonstrates solid hands-on experience through projects or work")
+    strengths.append(experience_line)
+    strengths.append(education_line)
 
-    if quality_score > 70:
-        strengths.append("Resume is well structured and contains sufficient technical information")
+    if quality_score >= 60:
+        strengths.append("Resume presentation is clear enough for recruiter review")
 
-    if education_score > 60:
-        strengths.append("Relevant educational background supports the role requirements")
+    # =========================
+    # WEAKNESSES
+    # =========================
+    weaknesses = []
 
-    if not strengths:
-        strengths.append("Basic eligibility met but lacks strong highlights")
-
-    # weaknesses
     if missing_skills:
-        weaknesses.append(f"Missing important skills such as {', '.join(missing_skills[:5])}")
+        weaknesses.append(f"Missing or weak skills include {', '.join(missing_skills[:8])}")
 
     if experience_score < 40:
-        weaknesses.append("Limited practical experience detected")
+        weaknesses.append("Relevant practical experience appears limited or not clearly described")
 
     if quality_score < 50:
-        weaknesses.append("Resume lacks detail and proper structure")
+        weaknesses.append("Resume detail level is low, making technical evaluation harder")
 
     if word_count < 120:
         weaknesses.append("Resume is too short for strong evaluation")
@@ -356,7 +476,7 @@ def analyze_resume_against_job(resume_text, job_description):
         weaknesses.append("No major weaknesses detected in initial screening")
 
     # =========================
-    # RECOMMENDATION (SMART)
+    # RECOMMENDATION
     # =========================
     if final_score >= 80:
         recommendation = "Strong Shortlist – Highly suitable candidate"
@@ -378,5 +498,10 @@ def analyze_resume_against_job(resume_text, job_description):
         "missing_skills": missing_skills,
         "strengths": strengths,
         "weaknesses": weaknesses,
-        "recommendation": recommendation
+        "recommendation": recommendation,
+        "summary": summary,
+        "skill_line": skill_line,
+        "experience_line": experience_line,
+        "education_line": education_line,
+        "quality_line": quality_line
     }
