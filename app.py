@@ -79,6 +79,10 @@ def login_required(f):
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
+UPLOAD_FOLDER = os.path.join(app.root_path, "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
 # ✅ ADD THIS
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 
@@ -675,7 +679,7 @@ def public_apply(public_token):
             return render_template("apply.html", job=job, public_mode=True)
 
         unique_filename = str(uuid.uuid4()) + "_" + original_filename
-        filepath = os.path.join("uploads", unique_filename)
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], unique_filename)
 
         resume_file.save(filepath)
 
@@ -749,7 +753,7 @@ def upload_resume(job_id):
 
     unique_filename = str(uuid.uuid4()) + "_" + original_filename
 
-    filepath = os.path.join("uploads", unique_filename)
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], unique_filename)
 
     # save file
     file.save(filepath)
@@ -807,7 +811,7 @@ def delete_resume(resume_id):
 
     if not resume:
      return "Unauthorized", 403
-    filepath = os.path.join("uploads", resume.filename)
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], resume.filename)
     if os.path.exists(filepath):
        os.remove(filepath)
 
@@ -837,7 +841,7 @@ def delete_job(job_id):
     ).all()
 
     for resume in resumes:
-        filepath = os.path.join("uploads", resume.filename)
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], resume.filename)
         if os.path.exists(filepath):
             os.remove(filepath)
 
@@ -995,15 +999,22 @@ def download_resume(resume_id):
     if not resume:
         return "Unauthorized", 403
 
-    # 🔥 FIX: absolute path
-    filepath = os.path.join(os.getcwd(), "uploads", resume.filename)
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], resume.filename)
 
-    # 🔥 FIX: check file exists
+    print("DOWNLOAD PATH:", filepath)
+    print("FILE EXISTS:", os.path.exists(filepath))
+
     if not os.path.exists(filepath):
-        flash("Resume file not found. It may have been removed from server.", "danger")
-        return redirect(url_for("job_results", job_id=resume.job_id))
+        flash("Resume file not found on server. Please re-upload this resume.", "danger")
+        return redirect(request.referrer or url_for("job_results", job_id=resume.job_id))
 
-    return send_file(filepath, as_attachment=True)
+    download_name = resume.filename.split("_", 1)[1] if "_" in resume.filename else resume.filename
+
+    return send_file(
+        filepath,
+        as_attachment=True,
+        download_name=download_name
+    )
 # ======================
 # APPROVE RESUME
 # ======================
