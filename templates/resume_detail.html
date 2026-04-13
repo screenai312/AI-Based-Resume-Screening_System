@@ -244,8 +244,29 @@
         <div class="row mb-4 align-items-end">
             <div class="col-md-8">
                 <h6 class="text-primary fw-bold text-uppercase tracking-wider mb-2">Recruiter Intelligence Report</h6>
-                <h1 class="fw-extrabold">{{ candidate_name }}</h1>
-                <p class="text-active mb-0">Applied for: <span class="text-white fw-bold">{{ job.title }}</span> • Processed {{ resume.uploaded_at.strftime('%b %d, %Y') }}</p>
+                <h1 class="fw-extrabold mb-1">{{ candidate_name }}</h1>
+
+<!-- 🔥 ADD EMAIL HERE -->
+<div class="d-flex align-items-center gap-3 mb-2 flex-wrap">
+
+    <div class="d-flex align-items-center gap-2">
+        <i data-lucide="mail" size="14" class="text-primary"></i>
+        <span class="text-white small fw-semibold">{{ candidate_email }}</span>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <i data-lucide="file-text" size="14" class="text-primary"></i>
+        <span class="text-active small">
+            {{ resume.filename.split('_', 1)[1] if '_' in resume.filename else resume.filename }}
+        </span>
+    </div>
+
+</div>
+
+<p class="text-active mb-0">
+    Applied for: <span class="text-white fw-bold">{{ job.title }}</span> • 
+    Processed {{ resume.uploaded_at.strftime('%b %d, %Y') }}
+</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
                 <div class="display-5 fw-bold text-primary">{{ resume.score }}<span class="h4 text-active">/100</span></div>
@@ -255,14 +276,46 @@
 
         <!-- Recommendation Banner -->
         <div class="recommendation-banner">
-            <div class="bg-white bg-opacity-20 p-2 rounded-circle">
-                <i data-lucide="zap" size="24"></i>
-            </div>
-            <div>
-                <div class="small text-white text-opacity-75 text-uppercase fw-bold">Executive Recommendation</div>
-                <div class="fw-bold h5 mb-0">{{ analysis.recommendation or 'In-depth review recommended based on skill overlap.' }}</div>
-            </div>
+
+    <!-- ICON -->
+    <div class="bg-white bg-opacity-20 p-2 rounded-circle">
+        <i data-lucide="user-check" size="24"></i>
+    </div>
+
+    <!-- TEXT -->
+    <div class="flex-grow-1">
+
+        <div class="small text-white text-opacity-75 text-uppercase fw-bold">
+            Executive Recommendation
         </div>
+
+        <div class="fw-bold h5 mb-1">
+            {{ analysis.recommendation or 'In-depth review recommended based on skill overlap.' }}
+        </div>
+
+        <!-- 🔥 ADD CANDIDATE DETAILS HERE -->
+        <div class="d-flex align-items-center gap-3 small text-white text-opacity-75 mt-1 flex-wrap">
+
+            <span class="d-flex align-items-center gap-1">
+                <i data-lucide="user" size="14"></i>
+                {{ candidate_name }}
+            </span>
+
+            <span class="d-flex align-items-center gap-1">
+                <i data-lucide="mail" size="14"></i>
+                {{ candidate_email }}
+            </span>
+
+            <span class="d-flex align-items-center gap-1">
+                <i data-lucide="briefcase" size="14"></i>
+                {{ job.title }}
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
 
         <div class="row g-4">
     <!-- Left Column -->
