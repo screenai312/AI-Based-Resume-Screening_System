@@ -255,12 +255,12 @@ def resume_detail(resume_id):
         return redirect(url_for("login"))
 
     resume = Resume.query.filter_by(
-    id=resume_id,
-    user_id=session["user_id"]
+        id=resume_id,
+        user_id=session["user_id"]
     ).first()
 
     if not resume:
-     return "Unauthorized", 403
+        return "Unauthorized", 403
 
     text = resume.content
 
@@ -271,11 +271,23 @@ def resume_detail(resume_id):
     # Extract name
     name = text.split("\n")[0] if text else "Unknown"
 
+    analysis = analyze_resume_against_job(
+        resume.content,
+        resume.job.description
+    )
+
+    # Auto mark as viewed when recruiter opens resume
+    if not resume.status or resume.status == "Pending":
+        resume.status = "Viewed"
+        db.session.commit()
+
     return render_template(
         "resume_detail.html",
         resume=resume,
         candidate_email=email,
-        candidate_name=name
+        candidate_name=name,
+        job=resume.job,
+        analysis=analysis
     )
 
 ##forgot password route

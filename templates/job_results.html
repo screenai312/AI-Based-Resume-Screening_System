@@ -498,19 +498,27 @@ font-size:12px;
                                     <i data-lucide="alert-triangle" size="14"></i> Low Match
                                 </span>
                             {% endif %}
-                            <form action="/update_status/{{ resume.id }}" method="POST">
-<select name="status" class="status-dropdown" onchange="this.form.submit()">
+                        <div class="mt-2">
+                            {% set current_status = resume.status if resume.status else "Pending" %}
 
-<option value="Pending" {% if resume.status == "Pending" %}selected{% endif %}>🟡 Pending</option>
-
-<option value="Interview" {% if resume.status == "Interview" %}selected{% endif %}>🔵 Interview</option>
-
-<option value="Approved" {% if resume.status == "Approved" %}selected{% endif %}>🟢 Approved</option>
-
-<option value="Rejected" {% if resume.status == "Rejected" %}selected{% endif %}>🔴 Rejected</option>
-
-</select>
-</form>
+                            {% if current_status == "Interview" %}
+                            <span class="status-pill" style="background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25);">
+                            <i data-lucide="calendar-check-2" size="14"></i> Interview
+                            </span>
+                            {% elif current_status == "Reject" %}
+                            <span class="status-pill" style="background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.25);">
+                            <i data-lucide="user-x" size="14"></i> Rejected
+                            </span>
+                            {% elif current_status == "Viewed" %}
+                            <span class="status-pill" style="background: rgba(168,85,247,0.12); color: #c084fc; border: 1px solid rgba(168,85,247,0.25);">
+                            <i data-lucide="eye" size="14"></i> Viewed
+                            </span>
+                            {% else %}
+                            <span class="status-pill" style="background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25);">
+                            <i data-lucide="clock-3" size="14"></i> Pending Review
+                            </span>
+                            {% endif %}
+                        </div>
 
                         </td>
                         <td>
