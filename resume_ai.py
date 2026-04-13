@@ -1,5 +1,7 @@
 import re
 
+from sqlalchemy import text
+
 
 COMMON_SKILLS = [
     "python", "java", "javascript", "html", "css", "bootstrap", "flask",
@@ -12,6 +14,15 @@ COMMON_SKILLS = [
     "oops", "object oriented programming", "dbms", "operating system",
     "computer networks", "nlp", "artificial intelligence", "prompt engineering"
 ]
+
+
+SKILL_GROUPS = {
+    "machine learning": ["ml", "machine learning", "supervised learning", "unsupervised learning"],
+    "deep learning": ["deep learning", "neural networks", "cnn", "rnn"],
+    "nlp": ["nlp", "natural language processing"],
+    "python": ["python"],
+    "data analysis": ["data analysis", "eda", "feature engineering"],
+}
 
 
 EDUCATION_KEYWORDS = [
@@ -40,31 +51,74 @@ def clean_text(text):
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
+def is_skill_match(skill, resume_text):
+    skill = skill.lower().strip()
+    text = clean_text(resume_text)
+
+    # direct phrase match
+    if skill in text:
+        return True
+
+    # group-based match
+    for _, variants in SKILL_GROUPS.items():
+        if skill in variants:
+            for var in variants:
+                if var in text:
+                    return True
+
+    # partial multi-word support
+    words = [w for w in skill.split() if len(w) > 2]
+    if words and all(word in text for word in words):
+        return True
+
+    return False
+
+
 def extract_job_requirements(job_description):
     job_text = clean_text(job_description)
 
-    # extract known skills
-    job_skills = extract_skills_from_text(job_text, COMMON_SKILLS)
+    # 1. skills explicitly written by recruiter in job description
+    explicit_job_skills = extract_explicit_job_skills(job_description)
 
-    # extract important keywords (fallback if JD is weak)
-    words = re.findall(r"[a-zA-Z][a-zA-Z+#.]{2,}", job_text)
+    # 2. known skills from master list
+    known_job_skills = extract_skills_from_text(job_text, COMMON_SKILLS)
+
+    # 3. merge both
+    merged_job_skills = []
+    seen = set()
+
+    for skill in explicit_job_skills + known_job_skills:
+        skill = skill.strip().lower()
+        if skill and skill not in seen:
+            merged_job_skills.append(skill)
+            seen.add(skill)
+
+    # 4. keywords fallback
+    words = re.findall(r"[a-zA-Z][a-zA-Z0-9+#.\-]{2,}", job_text)
 
     stopwords = {
-        "the","and","for","with","that","this","have","has","are",
-        "you","your","will","all","our","from","into","using","use",
-        "job","role","candidate","should","must","good","strong",
-        "ability","knowledge","required","preferred","responsible"
+        "the", "and", "for", "with", "that", "this", "have", "has", "are",
+        "you", "your", "will", "all", "our", "from", "into", "using", "use",
+        "job", "role", "candidate", "should", "must", "good", "strong",
+        "ability", "knowledge", "required", "preferred", "responsible",
+        "skills", "requirements", "technical", "experience"
     }
 
-    extra_keywords = [
-        w.lower() for w in words
-        if w.lower() not in stopwords and len(w) > 3
-    ]
+    extra_keywords = []
+    for w in words:
+        word = w.lower()
+        if word not in stopwords and len(word) > 2:
+            extra_keywords.append(word)
 
-    # merge both
-    combined = list(set(job_skills + extra_keywords[:20]))
+    job_keywords = []
+    seen_kw = set()
 
-    return job_skills, combined
+    for item in merged_job_skills + extra_keywords[:25]:
+        if item not in seen_kw:
+            job_keywords.append(item)
+            seen_kw.add(item)
+
+    return merged_job_skills, job_keywords
 
 
 def extract_skills_from_text(text, skill_list=None):
@@ -371,6 +425,80 @@ def generate_recommendation(final_score):
         return "Reject"
 
 
+def extract_explicit_job_skills(job_description):
+    """
+    Extract recruiter-written skills directly from the job description.
+    Works best when JD contains lines like:
+    - Skills: Python, Flask, SQL
+    - Required skills: Excel, typing, communication
+    - Technologies: React, Node.js, MongoDB
+    """
+    if not job_description:
+        return []
+
+    raw_text = job_description.replace("\r", "\n")
+    lines = [line.strip() for line in raw_text.split("\n") if line.strip()]
+
+    extracted = []
+
+    skill_section_keywords = [
+        "skills", "required skills", "technical skills",
+        "technologies", "requirements", "must have", "preferred skills"
+    ]
+
+    for line in lines:
+        lower_line = line.lower()
+
+        if any(keyword in lower_line for keyword in skill_section_keywords):
+            # take text after colon if present
+            if ":" in line:
+                _, skill_part = line.split(":", 1)
+            else:
+                skill_part = line
+
+            # split by comma or pipe or slash
+            parts = re.split(r"[,/|•]", skill_part)
+
+            for part in parts:
+                skill = part.strip().lower()
+                skill = re.sub(r"\s+", " ", skill)
+
+                # keep useful skills only
+                if len(skill) >= 2 and len(skill) <= 40:
+                    extracted.append(skill)
+
+    # fallback: if recruiter wrote skills in one paragraph
+    if not extracted:
+        words = re.split(r"[,/\n|•]", job_description)
+        for word in words:
+            skill = word.strip().lower()
+            skill = re.sub(r"\s+", " ", skill)
+
+            if 2 <= len(skill) <= 40:
+                # keep only more skill-like items
+                if any(ch.isalpha() for ch in skill):
+                    extracted.append(skill)
+
+    # remove obvious non-skill phrases
+    stop_phrases = {
+        "job description", "responsibilities", "candidate", "role", "experience",
+        "qualification", "qualifications", "company", "team", "developer needed",
+        "looking for", "we are hiring", "must have experience"
+    }
+
+    cleaned = []
+    seen = set()
+
+    for skill in extracted:
+        if skill in stop_phrases:
+            continue
+        if skill not in seen:
+            cleaned.append(skill)
+            seen.add(skill)
+
+    return cleaned
+
+
 def analyze_resume_against_job(resume_text, job_description):
     text = clean_text(resume_text)
     job_text = clean_text(job_description)
@@ -382,8 +510,15 @@ def analyze_resume_against_job(resume_text, job_description):
 
     job_skills, job_keywords = extract_job_requirements(job_description)
 
-    matched_skills = [s for s in job_skills if s in resume_skills]
-    missing_skills = [s for s in job_skills if s not in resume_skills]
+    # 🔥 Assign importance weight based on frequency in job description
+    skill_importance = {}
+
+    for skill in job_skills:
+        count = job_text.count(skill.lower())
+        skill_importance[skill] = 1 + count  # base weight + frequency
+
+    matched_skills = [s for s in job_skills if is_skill_match(s, text)]
+    missing_skills = [s for s in job_skills if not is_skill_match(s, text)]
 
 # 🔥 NEW: keyword-level matching (important)
     resume_words = set(text.split())
@@ -391,9 +526,22 @@ def analyze_resume_against_job(resume_text, job_description):
 
     keyword_score = (len(job_word_matches) / len(job_keywords)) * 100 if job_keywords else 50
 
+# slight boost for strong keyword overlap
+    if len(job_word_matches) > 5:
+     keyword_score += 10
+
+    keyword_score = min(keyword_score, 100)
+
     skill_score = 0
+
     if job_skills:
-        skill_score = (len(matched_skills) / len(job_skills)) * 100
+     total_weight = sum(skill_importance.values())
+
+    matched_weight = sum(
+        skill_importance[s] for s in matched_skills if s in skill_importance
+    )
+
+    skill_score = (matched_weight / total_weight) * 100
 
     # =========================
     # EXPERIENCE DETECTION
